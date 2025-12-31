@@ -1,0 +1,6 @@
+jwt:
+  secret-base64: "asdfsbasdfwerwercghert232123asdlkfsdlkafjlkjxcklvlksjdfklskldfjlk313124"
+  access-token-minutes: 60
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect

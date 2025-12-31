@@ -21,6 +21,7 @@ public enum ErrorCode {
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "C010", "지원하지 않는 미디어 타입입니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "C011", "파일 크기가 허용된 범위를 초과했습니다."),
     REQUEST_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "C012", "요청 시간이 초과되었습니다. 다시 시도해 주세요."),
+    HOSPITAL_NOT_FOUND(HttpStatus.NOT_FOUND, "C013", "요청하신 병원을 찾을 수 없습니다."), // 추가
 
     // Auth
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A003", "로그인이 만료되었습니다. 다시 로그인해 주세요."),
