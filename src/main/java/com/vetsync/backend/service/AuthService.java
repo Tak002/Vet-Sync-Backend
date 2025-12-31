@@ -12,10 +12,10 @@ import com.vetsync.backend.global.jwt.JwtTokenProvider;
 import com.vetsync.backend.global.security.StaffPrincipal;
 import com.vetsync.backend.repository.HospitalRepository;
 import com.vetsync.backend.repository.StaffRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +27,7 @@ public class AuthService {
     private final StaffRepository staffRepository;
     private final HospitalRepository hospitalRepository;
 
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest req) {
         StaffPrincipal principal = (StaffPrincipal) userDetailsService
                 .loadByHospitalAndLoginId(req.hospitalId(), req.loginId());

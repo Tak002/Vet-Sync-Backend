@@ -8,12 +8,14 @@ import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.HospitalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class HospitalService {
     private final HospitalRepository hospitalRepository;
 
+    @Transactional
     public HospitalInfoResponse registerHospital(HospitalRegisterRequest req) {
         if(hospitalRepository.existsByName(req.name())) {
             throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);

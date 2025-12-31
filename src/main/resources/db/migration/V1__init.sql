@@ -125,7 +125,8 @@ CREATE TABLE patient_day_notes (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
-    content text NOT NULL,
+    note_date date NOT NULL,
+    content jsonb NOT NULL DEFAULT '{}'::jsonb,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -193,3 +194,6 @@ ALTER TABLE patient_day_notes
 CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
     ON owners (hospital_id, phone)
     WHERE phone IS NOT NULL;
+
+CREATE UNIQUE INDEX uq_patient_day_notes_unique
+    ON patient_day_notes (hospital_id, patient_id, note_date);

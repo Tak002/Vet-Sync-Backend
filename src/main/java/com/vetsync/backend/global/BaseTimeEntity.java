@@ -4,9 +4,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import lombok.Getter;
 
 import java.time.OffsetDateTime;
 
+@Getter
 @MappedSuperclass
 public abstract class BaseTimeEntity {
 

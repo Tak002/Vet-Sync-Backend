@@ -22,6 +22,7 @@ public enum ErrorCode {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "C011", "파일 크기가 허용된 범위를 초과했습니다."),
     REQUEST_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "C012", "요청 시간이 초과되었습니다. 다시 시도해 주세요."),
     HOSPITAL_NOT_FOUND(HttpStatus.NOT_FOUND, "C013", "요청하신 병원을 찾을 수 없습니다."), // 추가
+    INVALID_REFERENCE(HttpStatus.BAD_REQUEST, "C014", "요청한 참조값이 유효하지 않습니다."),
 
     // Auth
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A003", "로그인이 만료되었습니다. 다시 로그인해 주세요."),
@@ -30,7 +31,10 @@ public enum ErrorCode {
     SMS_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "A006", "인증번호가 올바르지 않거나 만료되었습니다. 다시 확인해 주세요."),
 
     // Owner
-    OWNER_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 등록된 보호자입니다.");
+    OWNER_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 등록된 보호자입니다."),
+
+    // Patient
+    PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "요청하신 환자를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
