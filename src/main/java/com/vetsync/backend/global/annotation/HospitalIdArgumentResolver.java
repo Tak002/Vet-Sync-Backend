@@ -1,8 +1,6 @@
 package com.vetsync.backend.global.annotation;
 
-import com.vetsync.backend.global.jwt.JwtPrincipal;
 import org.springframework.core.MethodParameter;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -11,6 +9,11 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.UUID;
 
 public class HospitalIdArgumentResolver implements HandlerMethodArgumentResolver {
+    private final JwtPrincipalProvider principalProvider;
+
+    public HospitalIdArgumentResolver(JwtPrincipalProvider principalProvider) {
+        this.principalProvider = principalProvider;
+    }
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -25,15 +28,6 @@ public class HospitalIdArgumentResolver implements HandlerMethodArgumentResolver
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) {
-        JwtPrincipal principal = getPrincipal();
-        return principal.hospitalId();
-    }
-
-    private JwtPrincipal getPrincipal() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof JwtPrincipal p)) {
-            throw new IllegalStateException("Authentication principal is not JwtPrincipal");
-        }
-        return p;
+        return principalProvider.get().hospitalId();
     }
 }

@@ -1,16 +1,18 @@
 package com.vetsync.backend.global.annotation;
 
 import com.vetsync.backend.global.enums.StaffRole;
-import com.vetsync.backend.global.jwt.JwtPrincipal;
 import org.springframework.core.MethodParameter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class RoleArgumentResolver implements HandlerMethodArgumentResolver {
+    private final JwtPrincipalProvider jwtPrincipalProvider;
+
+    public RoleArgumentResolver(JwtPrincipalProvider jwtPrincipalProvider) {
+        this.jwtPrincipalProvider = jwtPrincipalProvider;
+    }
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -25,14 +27,7 @@ public class RoleArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) {
-        return getPrincipal().role();
+        return jwtPrincipalProvider.get().role();
     }
 
-    private JwtPrincipal getPrincipal() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof JwtPrincipal p)) {
-            throw new IllegalStateException("Authentication principal is not JwtPrincipal");
-        }
-        return p;
-    }
 }

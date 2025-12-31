@@ -2,6 +2,10 @@ package com.vetsync.backend.contorller;
 
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;
+import com.vetsync.backend.global.annotation.HospitalId;
+import com.vetsync.backend.global.annotation.Role;
+import com.vetsync.backend.global.annotation.StaffId;
+import com.vetsync.backend.global.enums.StaffRole;
 import com.vetsync.backend.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,15 +17,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @Tag(name = "Patient", description = "환자 등록/관리 API")
 @RestController
 @RequestMapping("/patients")
 @RequiredArgsConstructor
 public class PatientController {
     private final PatientService patientService;
+
     @PostMapping
     @Operation(summary = "환자 등록", description = "새로운 환자를 등록합니다")
-    public ResponseEntity<?> registerPatient(@Valid @RequestBody PatientRegisterRequest patientRegisterRequest) {
+    public ResponseEntity<?> registerPatient(@HospitalId UUID hospitalId, @StaffId UUID staffId, @Role StaffRole staffRole,
+                                             @Valid @RequestBody PatientRegisterRequest patientRegisterRequest) {
         PatientInfoResponse patientInfoResponse = patientService.registerPatient(patientRegisterRequest);
         return ResponseEntity.ok(patientInfoResponse);
     }

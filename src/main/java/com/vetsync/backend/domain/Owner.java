@@ -2,9 +2,7 @@ package com.vetsync.backend.domain;
 
 import com.vetsync.backend.global.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -13,6 +11,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Owner extends BaseTimeEntity {
 
     @Id
@@ -27,12 +27,14 @@ public class Owner extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String phone;
     private String email;
     private String address;
     private String memo;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

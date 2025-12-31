@@ -189,3 +189,8 @@ ALTER TABLE patient_day_notes
 ALTER TABLE patient_day_notes
     ADD CONSTRAINT fk_patient_day_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
+
+
+CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
+    ON owners (hospital_id, phone)
+    WHERE phone IS NOT NULL;

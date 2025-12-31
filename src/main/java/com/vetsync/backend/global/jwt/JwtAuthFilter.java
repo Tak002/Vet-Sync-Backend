@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,37 +27,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (auth == null || !auth.startsWith("Bearer ")) {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = auth.substring(7);
+        String token = authHeader.substring(7);
 
         try {
             Claims claims = jwt.parseAndValidate(token);
 
             UUID staffId = UUID.fromString(claims.getSubject());
-            UUID hospitalId = UUID.fromString((String) claims.get("hospitalId"));
-            StaffRole role = StaffRole.valueOf((String) claims.get("role"));
+            UUID hospitalId = UUID.fromString(String.valueOf(claims.get("hospitalId")));
+            StaffRole role = StaffRole.valueOf(String.valueOf(claims.get("role")));
 
-            // principal에 우리가 원하는 값을 담는 "세션 없는" 방식
-            var principal = new JwtPrincipal(staffId, hospitalId, role);
+            JwtPrincipal principal = new JwtPrincipal(staffId, hospitalId, role);
 
-            var authToken = new UsernamePasswordAuthenticationToken(
+            var authentication = new UsernamePasswordAuthenticationToken(
                     principal,
                     null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role.name())) //아직 사용 하지는 않음
+                    List.of()
             );
 
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {
-            SecurityContextHolder.clearContext(); // 토큰 이상하면 비인증으로
+            SecurityContextHolder.clearContext();
         }
 
         chain.doFilter(request, response);
     }
-
-    public record JwtPrincipal(UUID staffId, UUID hospitalId, StaffRole role) {}
 }

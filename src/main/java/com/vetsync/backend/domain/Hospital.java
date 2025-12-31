@@ -2,10 +2,7 @@ package com.vetsync.backend.domain;
 
 import com.vetsync.backend.global.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -14,6 +11,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Hospital extends BaseTimeEntity {
 
     @Id
@@ -23,9 +22,4 @@ public class Hospital extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String name;
-
-    @Builder
-    public Hospital(String name) {
-        this.name = name;
-    }
 }

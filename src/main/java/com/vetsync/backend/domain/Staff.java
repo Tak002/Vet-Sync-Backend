@@ -3,10 +3,7 @@ package com.vetsync.backend.domain;
 import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.StaffRole;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -25,6 +22,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Staff extends BaseTimeEntity {
 
     @Id
@@ -52,14 +51,4 @@ public class Staff extends BaseTimeEntity {
 
     @Column(nullable = false)
     private boolean isActive;
-
-    @Builder
-    public Staff(Hospital hospital, String loginId, String password, String name, StaffRole role, boolean isActive) {
-        this.hospital = hospital;
-        this.loginId = loginId;
-        this.password = password;
-        this.name = name;
-        this.role = role;
-        this.isActive = isActive;
-    }
 }

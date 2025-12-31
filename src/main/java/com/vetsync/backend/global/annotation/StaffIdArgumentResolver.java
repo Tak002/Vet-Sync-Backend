@@ -1,9 +1,6 @@
 package com.vetsync.backend.global.annotation;
 
-import com.vetsync.backend.global.jwt.JwtPrincipal;
 import org.springframework.core.MethodParameter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -12,6 +9,12 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.UUID;
 
 public class StaffIdArgumentResolver implements HandlerMethodArgumentResolver {
+    private final JwtPrincipalProvider principalProvider;
+
+    public StaffIdArgumentResolver(JwtPrincipalProvider principalProvider) {
+        this.principalProvider = principalProvider;
+    }
+
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -26,15 +29,7 @@ public class StaffIdArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) {
-        JwtPrincipal principal = getPrincipal();
-        return principal.staffId();
+        return principalProvider.get().staffId();
     }
 
-    private JwtPrincipal getPrincipal() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof JwtPrincipal p)) {
-            throw new IllegalStateException("Authentication principal is not JwtPrincipal");
-        }
-        return p;
-    }
 }

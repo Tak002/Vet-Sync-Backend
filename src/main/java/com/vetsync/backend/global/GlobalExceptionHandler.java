@@ -17,19 +17,19 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.nio.file.AccessDeniedException;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 접근 권한 에러 처리
-    //todo spring security 사용 시 주석 해제
 
-//    @ExceptionHandler(AccessDeniedException.class)
-//    protected ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
-//        log.error("handleAccessDeniedException", e);
-//        final ErrorResponse response = ErrorResponse.of(ErrorCode.HANDLE_ACCESS_DENIED);
-//        return new ResponseEntity<>(response, ErrorCode.HANDLE_ACCESS_DENIED.getStatus());
-//    }
+    @ExceptionHandler(AccessDeniedException.class)
+    protected ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("handleAccessDeniedException", e);
+        final ErrorResponse response = ErrorResponse.of(ErrorCode.HANDLE_ACCESS_DENIED);
+        return new ResponseEntity<>(response, ErrorCode.HANDLE_ACCESS_DENIED.getStatus());
+    }
 
     // DTO 검증 실패 처리
     @ExceptionHandler(MethodArgumentNotValidException.class)
