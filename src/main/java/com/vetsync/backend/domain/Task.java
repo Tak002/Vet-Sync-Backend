@@ -30,8 +30,8 @@ public class Task extends BaseTimeEntity {
     private Patient patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "medical_action_definition_id", nullable = false)
-    private MedicalActionDefinition medicalActionDefinition;
+    @JoinColumn(name = "task_definition_id", nullable = false)
+    private TaskDefinition taskDefinition;
 
     private String taskNotes;
 

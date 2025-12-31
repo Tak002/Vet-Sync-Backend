@@ -95,7 +95,7 @@ CREATE TABLE patients (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE medical_action_definitions (
+CREATE TABLE task_definitions (
     id uuid PRIMARY KEY,
     name varchar(255) NOT NULL,
     is_global boolean NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE tasks (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
-    medical_action_definition_id uuid NOT NULL,
+    task_definition_id uuid NOT NULL,
     task_notes text,
     status task_status NOT NULL,
     result text,
@@ -157,8 +157,8 @@ ALTER TABLE patients
     ADD CONSTRAINT fk_patients_created_by
         FOREIGN KEY (created_by) REFERENCES staffs (id);
 
-ALTER TABLE medical_action_definitions
-    ADD CONSTRAINT fk_med_actions_hospital
+ALTER TABLE task_definitions
+    ADD CONSTRAINT fk_task_definitions_hospital
         FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
 
 ALTER TABLE tasks
@@ -170,9 +170,9 @@ ALTER TABLE tasks
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
 ALTER TABLE tasks
-    ADD CONSTRAINT fk_tasks_med_action
-        FOREIGN KEY (medical_action_definition_id)
-            REFERENCES medical_action_definitions (id);
+    ADD CONSTRAINT fk_tasks_task_definition
+        FOREIGN KEY (task_definition_id)
+            REFERENCES task_definitions (id);
 
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_assignee
@@ -189,7 +189,6 @@ ALTER TABLE patient_day_notes
 ALTER TABLE patient_day_notes
     ADD CONSTRAINT fk_patient_day_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
-
 
 CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
     ON owners (hospital_id, phone)

@@ -9,11 +9,11 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "medical_action_definitions")
+@Table(name = "task_definitions")
 @Getter
 @Setter
 @NoArgsConstructor
-public class MedicalActionDefinition {
+public class TaskDefinition {
 
     @Id
     @Column(columnDefinition = "uuid")
