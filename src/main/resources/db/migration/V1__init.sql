@@ -106,7 +106,7 @@ CREATE TABLE tasks (
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
     medical_action_definition_id uuid NOT NULL,
-    description text,
+    task_notes text,
     status task_status NOT NULL,
     result text,
     assignee_id uuid,

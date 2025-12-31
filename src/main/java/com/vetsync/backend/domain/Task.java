@@ -31,7 +31,7 @@ public class Task {
     @JoinColumn(name = "medical_action_definition_id", nullable = false)
     private MedicalActionDefinition medicalActionDefinition;
 
-    private String description;
+    private String taskNotes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
