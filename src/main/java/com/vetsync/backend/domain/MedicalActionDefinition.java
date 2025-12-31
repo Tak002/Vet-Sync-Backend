@@ -17,6 +17,7 @@ public class MedicalActionDefinition {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, length = 255)

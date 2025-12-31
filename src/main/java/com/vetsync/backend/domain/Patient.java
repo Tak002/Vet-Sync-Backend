@@ -4,9 +4,7 @@ import com.vetsync.backend.global.enums.PatientGender;
 import com.vetsync.backend.global.enums.PatientSpecies;
 import com.vetsync.backend.global.enums.PatientStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -15,10 +13,13 @@ import java.util.UUID;
 @Table(name = "patients")
 @Getter @Setter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class Patient {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,7 +46,8 @@ public class Patient {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PatientStatus status;
+    @Builder.Default
+    private PatientStatus status = PatientStatus.REGISTERED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)

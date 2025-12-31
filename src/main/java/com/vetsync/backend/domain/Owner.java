@@ -17,6 +17,7 @@ public class Owner {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)

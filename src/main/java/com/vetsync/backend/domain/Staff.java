@@ -18,6 +18,7 @@ public class Staff {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
