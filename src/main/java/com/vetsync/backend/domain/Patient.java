@@ -1,12 +1,12 @@
 package com.vetsync.backend.domain;
 
+import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.PatientGender;
 import com.vetsync.backend.global.enums.PatientSpecies;
 import com.vetsync.backend.global.enums.PatientStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class Patient {
+public class Patient extends BaseTimeEntity {
 
     @Id
     @Column(columnDefinition = "uuid")
@@ -52,10 +52,4 @@ public class Patient {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private Staff createdBy;
-
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
 }

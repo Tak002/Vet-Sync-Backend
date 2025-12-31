@@ -1,11 +1,11 @@
 package com.vetsync.backend.domain;
 
+import com.vetsync.backend.global.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Owner {
+public class Owner extends BaseTimeEntity {
 
     @Id
     @Column(columnDefinition = "uuid")
@@ -38,10 +38,4 @@ public class Owner {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private Staff createdBy;
-
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
 }

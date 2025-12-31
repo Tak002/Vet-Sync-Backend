@@ -56,11 +56,14 @@ CREATE TABLE hospitals (
 CREATE TABLE staffs (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
+    login_id text NOT NULL,
+    password text NOT NULL,
     name text NOT NULL,
     role staff_role NOT NULL,
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT uq_staff_login_per_hospital UNIQUE (hospital_id, login_id)
 );
 
 CREATE TABLE owners (
@@ -118,6 +121,15 @@ CREATE TABLE tasks (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE patient_day_notes (
+    id uuid PRIMARY KEY,
+    hospital_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    content text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- =========================
 -- FOREIGN KEYS
 -- =========================
@@ -169,3 +181,11 @@ ALTER TABLE tasks
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_created_by
         FOREIGN KEY (created_by) REFERENCES staffs (id);
+
+ALTER TABLE patient_day_notes
+    ADD CONSTRAINT fk_patient_day_notes_hospital
+        FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
+
+ALTER TABLE patient_day_notes
+    ADD CONSTRAINT fk_patient_day_notes_patient
+        FOREIGN KEY (patient_id) REFERENCES patients (id);

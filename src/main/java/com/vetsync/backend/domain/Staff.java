@@ -1,20 +1,28 @@
 package com.vetsync.backend.domain;
 
+import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.StaffRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "staffs")
+@Table(
+    name = "staffs",
+    uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uq_staff_login_per_hospital",
+                columnNames = {"hospital_id", "login_id"}
+        )
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
-public class Staff {
+public class Staff extends BaseTimeEntity {
 
     @Id
     @Column(columnDefinition = "uuid")
@@ -26,6 +34,12 @@ public class Staff {
     private Hospital hospital;
 
     @Column(nullable = false)
+    private String loginId;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -34,10 +48,4 @@ public class Staff {
 
     @Column(nullable = false)
     private boolean isActive = true;
-
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
 }

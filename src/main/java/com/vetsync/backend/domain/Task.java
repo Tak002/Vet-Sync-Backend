@@ -1,5 +1,6 @@
 package com.vetsync.backend.domain;
 
+import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Table(name = "tasks")
 @Getter @Setter
 @NoArgsConstructor
-public class Task {
+public class Task extends BaseTimeEntity {
 
     @Id
     @Column(columnDefinition = "uuid")
@@ -51,10 +52,4 @@ public class Task {
     private OffsetDateTime startedAt;
     private OffsetDateTime confirmRequestedAt;
     private OffsetDateTime completedAt;
-
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
 }
