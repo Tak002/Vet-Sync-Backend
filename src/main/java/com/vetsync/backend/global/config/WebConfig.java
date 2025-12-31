@@ -1,7 +1,7 @@
 package com.vetsync.backend.global.config;
 
 import com.vetsync.backend.global.annotation.HospitalIdArgumentResolver;
-import com.vetsync.backend.global.annotation.JwtPrincipalProvider;
+import com.vetsync.backend.global.jwt.JwtPrincipalProvider;
 import com.vetsync.backend.global.annotation.RoleArgumentResolver;
 import com.vetsync.backend.global.annotation.StaffIdArgumentResolver;
 import lombok.RequiredArgsConstructor;

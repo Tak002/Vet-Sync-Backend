@@ -1,8 +1,7 @@
-package com.vetsync.backend.global.annotation;
+package com.vetsync.backend.global.jwt;
 
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
-import com.vetsync.backend.global.jwt.JwtPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
