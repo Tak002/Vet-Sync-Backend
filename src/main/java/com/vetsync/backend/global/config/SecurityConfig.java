@@ -38,9 +38,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/signup",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-token-auto.js"
-                        ).permitAll()
+                                "/v3/api-docs/**")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwt), UsernamePasswordAuthenticationFilter.class)
