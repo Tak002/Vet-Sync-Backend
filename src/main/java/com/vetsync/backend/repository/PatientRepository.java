@@ -4,10 +4,14 @@ import com.vetsync.backend.domain.Patient;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PatientRepository extends JpaRepository<Patient, UUID> {
     Boolean existsByHospitalIdAndOwnerIdAndName(UUID hospitalId, UUID ownerId,String name);
 
-    boolean existsByIdAndHospital_Id(@NotNull UUID uuid, @NotNull UUID hospitalId);
+
+    boolean existsByIdAndHospitalId(@NotNull UUID patientId, @NotNull UUID hospitalId);
+
+    Optional<Patient> findByIdAndHospitalId(UUID patientId, UUID hospitalId);
 }

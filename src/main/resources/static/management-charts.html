@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>환자 상태관리표</title>
+    <style>
+        :root{
+            --bg:#0b1220;
+            --panel:#0f1b33;
+            --panel2:#0c172c;
+            --text:#e8eefc;
+            --muted:#a9b6d6;
+            --line:#223258;
+
+            --empty:#0e1a30;
+            --pending:#3a2a00;
+            --inprogress:#0b2c3a;
+            --confirm:#2a0b3a;
+            --completed:#0a3a17;
+
+            --chip:#14264a;
+
+            --shadow: 0 10px 25px rgba(0,0,0,.35);
+            --radius: 14px;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, "Apple SD Gothic Neo", sans-serif;
+            color:var(--text);
+            background: radial-gradient(1200px 800px at 30% 10%, #13244a 0%, rgba(19,36,74,0) 60%),
+            radial-gradient(1200px 800px at 90% 40%, #1a2a54 0%, rgba(26,42,84,0) 60%),
+            var(--bg);
+        }
+        a{color:inherit}
+        .app{
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 18px;
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+        }
+        .topbar{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+        }
+        .card{
+            background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .patient{
+            flex:1;
+            padding:14px 14px 10px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+        .patient h1{
+            margin:0;
+            font-size:18px;
+            letter-spacing:.2px;
+        }
+        .meta{
+            display:grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap:10px;
+        }
+        .kv{
+            background: rgba(0,0,0,.15);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius: 12px;
+            padding:10px;
+            min-height:54px;
+        }
+        .kv .k{font-size:12px;color:var(--muted);margin-bottom:4px}
+        .kv .v{font-size:13px;word-break:break-all}
+
+        .actions{
+            width: 320px;
+            padding:14px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+        .actions h2{
+            margin:0;
+            font-size:14px;
+            color: var(--muted);
+            font-weight:600;
+        }
+        .row{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            flex-wrap:wrap;
+        }
+        input[type="text"], input[type="date"]{
+            width:100%;
+            background: rgba(0,0,0,.22);
+            border:1px solid rgba(255,255,255,.10);
+            color: var(--text);
+            padding:10px 11px;
+            border-radius: 10px;
+            outline:none;
+        }
+        input[type="text"]:focus, input[type="date"]:focus{
+            border-color: rgba(160,200,255,.45);
+            box-shadow: 0 0 0 3px rgba(80,140,255,.18);
+        }
+        button{
+            cursor:pointer;
+            background: rgba(90,150,255,.18);
+            border:1px solid rgba(90,150,255,.35);
+            color: var(--text);
+            padding:10px 11px;
+            border-radius: 10px;
+            font-weight:600;
+            transition:.15s ease;
+        }
+        button:hover{ transform: translateY(-1px); background: rgba(90,150,255,.25); }
+        button:active{ transform: translateY(0px); }
+        .btn-ghost{
+            background: rgba(255,255,255,.06);
+            border-color: rgba(255,255,255,.10);
+        }
+
+        .legend{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin-top:6px;
+        }
+        .pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:6px 10px;
+            background: rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius: 999px;
+            font-size:12px;
+            color: var(--muted);
+        }
+        .dot{
+            width:10px;height:10px;border-radius:50%;
+            background: var(--empty);
+            border:1px solid rgba(255,255,255,.10);
+        }
+        .dot.pending{ background: var(--pending); }
+        .dot.inprogress{ background: var(--inprogress); }
+        .dot.confirm{ background: var(--confirm); }
+        .dot.completed{ background: var(--completed); }
+
+        .table-wrap{
+            padding: 12px;
+            overflow:auto;
+            border-radius: var(--radius);
+        }
+        table{
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1400px;
+            width: 100%;
+            color: var(--text);
+            font-size: 12px;
+        }
+        thead th{
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: rgba(12,23,44,.95);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid rgba(255,255,255,.10);
+        }
+        th, td{
+            border-right: 1px solid rgba(255,255,255,.06);
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            padding: 8px 8px;
+            text-align:center;
+            vertical-align: middle;
+            white-space:nowrap;
+        }
+        th:first-child, td:first-child{
+            position: sticky;
+            left: 0;
+            z-index: 4;
+            background: rgba(12,23,44,.95);
+            backdrop-filter: blur(6px);
+            text-align:left;
+            min-width: 160px;
+            max-width: 220px;
+        }
+        th:nth-child(2), td:nth-child(2){
+            position: sticky;
+            left: 160px;
+            z-index: 4;
+            background: rgba(12,23,44,.95);
+            backdrop-filter: blur(6px);
+            min-width: 90px;
+        }
+        td.cell{
+            cursor:pointer;
+            background: rgba(0,0,0,.12);
+            transition: .12s ease;
+            min-width: 52px;
+            max-width: 86px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        td.cell:hover{
+            outline: 2px solid rgba(140,190,255,.45);
+            outline-offset: -2px;
+            filter: brightness(1.07);
+        }
+        td.cell.empty{ background: rgba(0,0,0,.10); color: rgba(232,238,252,.35); }
+        td.cell.pending{ background: color-mix(in oklab, var(--pending) 82%, black 18%); }
+        td.cell.inprogress{ background: color-mix(in oklab, var(--inprogress) 82%, black 18%); }
+        td.cell.confirm{ background: color-mix(in oklab, var(--confirm) 82%, black 18%); }
+        td.cell.completed{ background: color-mix(in oklab, var(--completed) 82%, black 18%); }
+        td.cell .result{
+            display:block;
+            font-size: 11px;
+            line-height: 1.2;
+            max-height: 2.4em;
+            overflow:hidden;
+            text-overflow: ellipsis;
+            padding: 0 2px;
+        }
+        td.cell .sub{
+            display:block;
+            margin-top:3px;
+            font-size:10px;
+            color: rgba(232,238,252,.70);
+        }
+
+        .row-title{
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            padding: 0 2px;
+        }
+        .row-title .name{ font-weight:700; }
+        .row-title .desc{ font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis }
+
+        .toast{
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,.55);
+            border:1px solid rgba(255,255,255,.10);
+            padding: 10px 12px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            color: var(--text);
+            font-size: 13px;
+            display:none;
+            z-index: 9999;
+            max-width: 90vw;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+
+        /* Modal */
+        .overlay{
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            display:none;
+            z-index: 10000;
+            padding: 18px;
+        }
+        .modal{
+            max-width: 820px;
+            margin: 0 auto;
+            margin-top: 40px;
+            background: rgba(15,27,51,.95);
+            border:1px solid rgba(255,255,255,.10);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow:hidden;
+        }
+        .modal header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            gap:10px;
+        }
+        .modal header h3{
+            margin:0;
+            font-size:14px;
+            color: var(--text);
+        }
+        .modal header .close{
+            background: rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.10);
+            padding: 8px 10px;
+            border-radius: 10px;
+        }
+        .modal .body{
+            padding: 14px;
+            display:flex;
+            gap:12px;
+            flex-direction:column;
+        }
+        .grid2{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:10px;
+        }
+        .help{
+            font-size:12px;
+            color: var(--muted);
+            line-height:1.45;
+        }
+        textarea, select{
+            width:100%;
+            background: rgba(0,0,0,.22);
+            border:1px solid rgba(255,255,255,.10);
+            color: var(--text);
+            padding:10px 11px;
+            border-radius: 10px;
+            outline:none;
+            resize: vertical;
+            min-height: 90px;
+        }
+        select{ min-height: unset; height: 40px; }
+        .modal footer{
+            padding: 12px 14px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            display:flex;
+            gap:10px;
+            justify-content:flex-end;
+            flex-wrap:wrap;
+        }
+        .danger{
+            background: rgba(255,80,80,.15);
+            border-color: rgba(255,80,80,.30);
+        }
+        .muted{
+            color: var(--muted);
+            font-size:12px;
+        }
+
+        @media (max-width: 980px){
+            .topbar{flex-direction:column;}
+            .actions{width:100%;}
+            .meta{grid-template-columns: repeat(2, minmax(0,1fr));}
+            th:nth-child(2), td:nth-child(2){ left: 160px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <div class="topbar">
+        <div class="card patient">
+            <h1 id="patientTitle">환자 정보</h1>
+            <div class="meta" id="patientMeta"></div>
+        </div>
+
+        <div class="card actions">
+            <h2>페이지 설정</h2>
+
+            <div class="row">
+                <div style="flex:1">
+                    <div class="muted" style="margin:0 0 6px">환자 ID</div>
+                    <input id="patientIdInput" type="text" placeholder="e2da4625-7158-496f-9f84-9d26b7086ef2" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="flex:1">
+                    <div class="muted" style="margin:0 0 6px">날짜</div>
+                    <input id="dateInput" type="date" />
+                </div>
+            </div>
+
+            <div class="row">
+                <button id="btnLoad">불러오기</button>
+                <button id="btnReload" class="btn-ghost">새로고침</button>
+            </div>
+
+            <div class="muted">
+                경로: <code>/tasks/patients/{patientId}/management-charts/{date}</code>
+            </div>
+
+            <div class="legend">
+                <span class="pill"><span class="dot"></span>없음</span>
+                <span class="pill"><span class="dot pending"></span>PENDING</span>
+                <span class="pill"><span class="dot inprogress"></span>IN_PROGRESS</span>
+                <span class="pill"><span class="dot confirm"></span>CONFIRM_WAITING</span>
+                <span class="pill"><span class="dot completed"></span>COMPLETED</span>
+            </div>
+
+            <div class="help">
+                • 왼쪽(업무 정의) 행 + 시간 셀 클릭 → 해당 Task 생성<br/>
+                • 빈 행(공백) 클릭 → 추가 가능한 TaskDefinition 선택 후 생성<br/>
+                • 이미 Task가 있는 셀 클릭 → Task 상세 보기<br/>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-wrap">
+        <table id="chartTable" aria-label="환자 상태관리표"></table>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <header>
+            <h3 id="modalTitle">상세</h3>
+            <button class="close" id="modalClose">닫기</button>
+        </header>
+        <div class="body" id="modalBody"></div>
+        <footer id="modalFooter"></footer>
+    </div>
+</div>
+
+<script>
+    /***********************
+     * CONFIG
+     ***********************/
+        // API Base (필요하면 수정)
+    const API_BASE = "";
+
+    // 시간 헤더 (AM/PM + 12/1..11 + 12/1..11) = 24칸
+    const HOURS = Array.from({length: 24}, (_, i) => i); // 0~23 내부키
+    // UI 표기: 0=12AM, 1=1AM ... 11=11AM, 12=12PM, 13=1PM ...
+    const hourLabel = (h) => {
+        const isPM = h >= 12;
+        const v = h % 12 === 0 ? 12 : (h % 12);
+        return String(v);
+    };
+    const hourPeriod = (h) => (h < 12 ? "AM" : "PM");
+
+    // 글로벌 정의는 항상 위에 배치 (name 기준 기본 정렬)
+    // 비글로벌 정의는 해당 날짜 tasks에 등장하면 아래쪽에 동적으로 추가
+
+    /***********************
+     * STATE
+     ***********************/
+    const state = {
+        patientId: null,
+        date: null, // yyyy-mm-dd
+        patient: null, // PatientInfoResponse
+        defs: [], // all accessible task definitions
+        defById: new Map(),
+        globalDefs: [],
+        nonGlobalDefs: [],
+        // row model: { type:'DEF'|'BLANK', defId?, blankIndex?, label, desc }
+        rows: [],
+        // tasks for the date: keyed by (defId + '|' + hour)
+        taskMap: new Map(),
+        // original tasks array for detail lookup
+        tasks: [],
+    };
+
+    /***********************
+     * HELPERS
+     ***********************/
+    const $ = (sel) => document.querySelector(sel);
+    const escapeHtml = (s) => (s ?? "").toString()
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+
+    function toast(msg){
+        const t = $("#toast");
+        t.textContent = msg;
+        t.style.display = "block";
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(()=> t.style.display="none", 2200);
+    }
+
+    function getPathParamsFromUrl(){
+        // 기대 경로: /patients/{patientId}/management-charts/{date}
+        const parts = location.pathname.split("/").filter(Boolean);
+        const idx = parts.indexOf("patients");
+        if(idx !== -1 && parts[idx+2] === "management-charts"){
+            const pid = parts[idx+1];
+            const date = parts[idx+3];
+            return { pid, date };
+        }
+        return { pid: null, date: null };
+    }
+
+    function statusToClass(status){
+        if(!status) return "empty";
+        switch(status){
+            case "PENDING": return "pending";
+            case "IN_PROGRESS": return "inprogress";
+            case "CONFIRM_WAITING": return "confirm";
+            case "COMPLETED": return "completed";
+            default: return "empty";
+        }
+    }
+
+    function validateStatusTransition(current, next){
+        const order = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
+        const ci = order.indexOf(current);
+        const ni = order.indexOf(next);
+        if(ci === -1 || ni === -1) return false;
+        return ni === ci + 1; // 반드시 한 단계씩만
+    }
+
+    async function apiFetch(path, opts={}){
+        const headers = opts.headers ? {...opts.headers} : {};
+        headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
+        // TODO: JWT 사용 시 여기에 Authorization 추가
+        // headers["Authorization"] = "Bearer ...";
+        const res = await fetch(API_BASE + path, {...opts, headers});
+        if(!res.ok){
+            let body = "";
+            try { body = await res.text(); } catch {}
+            throw new Error(`HTTP ${res.status} ${res.statusText} - ${body}`);
+        }
+        // 204 대비
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
+    }
+
+    /***********************
+     * API CALLS (당신의 서버에 맞춤)
+     ***********************/
+    const API = {
+        // GET /patients/{patientId}
+        getPatient: (patientId) => apiFetch(`/patients/${patientId}`, { method:"GET" }),
+
+        // GET /task-definitions
+        getTaskDefinitions: () => apiFetch(`/task-definitions`, { method:"GET" }),
+
+        // GET /patients/{patientId}/days/{taskDate}
+        getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/days/${taskDate}`, { method:"GET" }),
+
+        // POST /tasks
+        createTask: (payload) => apiFetch(`/tasks`, { method:"POST", body: JSON.stringify(payload) }),
+    };
+
+    /***********************
+     * RENDER: PATIENT CARD
+     ***********************/
+    function renderPatient(){
+        const p = state.patient;
+        if(!p){
+            $("#patientTitle").textContent = "환자 정보";
+            $("#patientMeta").innerHTML = "";
+            return;
+        }
+        $("#patientTitle").textContent = `환자: ${p.name} (${p.species}${p.speciesDetail ? ` / ${p.speciesDetail}` : ""})`;
+        const items = [
+            ["환자 ID", p.id],
+            ["병원 ID", p.hospitalId],
+            ["보호자 ID", p.ownerId],
+            ["상태", p.status],
+            ["성별", p.gender],
+            ["품종", p.breed ?? "-"],
+            ["생성자", p.createdBy],
+            ["조회 날짜", state.date],
+        ];
+        $("#patientMeta").innerHTML = items.map(([k,v]) => `
+      <div class="kv">
+        <div class="k">${escapeHtml(k)}</div>
+        <div class="v">${escapeHtml(v ?? "-")}</div>
+      </div>
+    `).join("");
+    }
+
+    /***********************
+     * BUILD ROWS
+     ***********************/
+    function buildRows(){
+        // 1) 글로벌 정의: 항상 표시
+        // 2) 비글로벌 정의: 해당 날짜 task에 존재하는 defId만 표시
+        // 3) 공백 row: 4줄 제공 (요구사항)
+        const globalRows = state.globalDefs
+            .slice()
+            .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
+            .map(def => ({
+                type:"DEF",
+                defId: def.id,
+                label: def.name,
+                desc: def.description ?? ""
+            }));
+
+        const usedNonGlobalDefIds = new Set();
+        for(const t of state.tasks){
+            const def = state.defById.get(t.taskDefinitionId);
+            if(def && !def.global) usedNonGlobalDefIds.add(def.id);
+        }
+        const nonGlobalRows = Array.from(usedNonGlobalDefIds)
+            .map(id => state.defById.get(id))
+            .filter(Boolean)
+            .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
+            .map(def => ({
+                type:"DEF",
+                defId: def.id,
+                label: def.name,
+                desc: def.description ?? ""
+            }));
+
+        const blankRows = Array.from({length:4}, (_,i)=>({
+            type:"BLANK",
+            blankIndex: i+1,
+            label: "(공백)",
+            desc: "클릭해서 항목 추가"
+        }));
+
+        state.rows = [...globalRows, ...nonGlobalRows, ...blankRows];
+    }
+
+    /***********************
+     * BUILD TASK MAP
+     ***********************/
+    function buildTaskMap(){
+        state.taskMap.clear();
+        for(const t of state.tasks){
+            const key = `${t.taskDefinitionId}|${t.taskHour}`;
+            state.taskMap.set(key, t);
+        }
+    }
+
+    /***********************
+     * RENDER TABLE
+     ***********************/
+    function renderTable(){
+        const table = $("#chartTable");
+        if(!state.date){
+            table.innerHTML = "";
+            return;
+        }
+
+        // THEAD
+        // Row 1: Date | 처치시간 | AM span 12 | PM span 12 | Order & Results
+        // Row 2: (blank) | 12 1..11 12 1..11 | (blank)
+        const th1 = `
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>처치시간</th>
+          <th colspan="12">AM</th>
+          <th colspan="12">PM</th>
+          <th>Order &amp; Results</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th>12</th>
+          ${HOURS.slice(1,12).map(h=>`<th>${hourLabel(h)}</th>`).join("")}
+          <th>12</th>
+          ${HOURS.slice(13,24).map(h=>`<th>${hourLabel(h)}</th>`).join("")}
+          <th></th>
+        </tr>
+      </thead>
+    `;
+
+        // TBODY
+        const rowsHtml = state.rows.map((r, rowIdx)=>{
+            const left = r.type==="DEF"
+                ? (() => {
+                    const def = state.defById.get(r.defId);
+                    const name = def?.name ?? r.label;
+                    const desc = def?.description ?? r.desc ?? "";
+                    return `
+              <td>
+                <div class="row-title">
+                  <div class="name">${escapeHtml(name)}</div>
+                  <div class="desc" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>
+                </div>
+              </td>
+            `;
+                })()
+                : `
+            <td>
+              <div class="row-title">
+                <div class="name">(공백)</div>
+                <div class="desc">${escapeHtml(r.desc)}</div>
+              </div>
+            </td>
+          `;
+
+            // "처치시간" 열: 여기서는 "-" 표시(샘플표처럼). 필요하면 요일/기타로 변경 가능
+            const timeCol = `<td>${r.type==="DEF" ? "-" : "-"}</td>`;
+
+            const hourCells = HOURS.map(h=>{
+                // DEF row일 때만 task 매핑
+                let task = null;
+                if(r.type==="DEF"){
+                    task = state.taskMap.get(`${r.defId}|${h}`) ?? null;
+                }
+
+                // cell style
+                const cls = task ? statusToClass(task.status) : "empty";
+                const labelTop = task?.result ? escapeHtml(task.result) : "—";
+                const small = task ? `<span class="sub">${escapeHtml(task.status)}</span>` : `<span class="sub">${hourPeriod(h)} ${hourLabel(h)}</span>`;
+
+                // 클릭 데이터
+                const data = {
+                    rowType: r.type,
+                    defId: r.type==="DEF" ? r.defId : "",
+                    blankIndex: r.type==="BLANK" ? r.blankIndex : "",
+                    hour: h,
+                };
+
+                return `
+          <td class="cell ${cls}"
+              data-row-type="${data.rowType}"
+              data-def-id="${data.defId}"
+              data-blank-index="${data.blankIndex}"
+              data-hour="${data.hour}">
+            <span class="result">${labelTop}</span>
+            ${small}
+          </td>
+        `;
+            }).join("");
+
+            // "Order & Results" 컬럼: 행 설명/요약을 표시(요구사항 상 표 모양 유지)
+            // DEF면 valueType 표시, BLANK면 안내
+            const right = (() => {
+                if(r.type==="DEF"){
+                    const def = state.defById.get(r.defId);
+                    const vt = def?.valueType ?? "-";
+                    const g = def?.global ? "GLOBAL" : "HOSPITAL";
+                    return `<td title="${escapeHtml(def?.description ?? "")}">${escapeHtml(g)} · ${escapeHtml(vt)}</td>`;
+                }
+                return `<td class="muted">빈 행(클릭→항목 선택)</td>`;
+            })();
+
+            return `<tr data-row-index="${rowIdx}">${left}${timeCol}${hourCells}${right}</tr>`;
+        }).join("");
+
+        table.innerHTML = th1 + `<tbody>${rowsHtml}</tbody>`;
+    }
+
+    /***********************
+     * MODALS
+     ***********************/
+    function openModal(title, bodyHtml, footerHtml){
+        $("#modalTitle").textContent = title;
+        $("#modalBody").innerHTML = bodyHtml;
+        $("#modalFooter").innerHTML = footerHtml ?? "";
+        $("#overlay").style.display = "block";
+    }
+    function closeModal(){
+        $("#overlay").style.display = "none";
+    }
+
+    $("#modalClose").addEventListener("click", closeModal);
+    $("#overlay").addEventListener("click", (e)=>{
+        if(e.target === $("#overlay")) closeModal();
+    });
+
+    function renderTaskDetail(task){
+        const def = state.defById.get(task.taskDefinitionId);
+        const body = `
+      <div class="grid2">
+        <div class="kv"><div class="k">Task ID</div><div class="v">${escapeHtml(task.id)}</div></div>
+        <div class="kv"><div class="k">상태</div><div class="v">${escapeHtml(task.status)}</div></div>
+        <div class="kv"><div class="k">정의</div><div class="v">${escapeHtml(def?.name ?? task.taskDefinitionId)}</div></div>
+        <div class="kv"><div class="k">날짜/시간</div><div class="v">${escapeHtml(task.taskDate)} / ${escapeHtml(task.taskHour)}시</div></div>
+        <div class="kv"><div class="k">병원</div><div class="v">${escapeHtml(task.hospitalId)}</div></div>
+        <div class="kv"><div class="k">환자</div><div class="v">${escapeHtml(task.patientId)}</div></div>
+        <div class="kv"><div class="k">담당자(assignee)</div><div class="v">${escapeHtml(task.assigneeId ?? "-")}</div></div>
+        <div class="kv"><div class="k">생성자(createdBy)</div><div class="v">${escapeHtml(task.createdBy)}</div></div>
+      </div>
+
+      <div class="kv">
+        <div class="k">업무 메모(taskNotes)</div>
+        <div class="v">${escapeHtml(task.taskNotes ?? "-")}</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">결과(result)</div>
+        <div class="v">${escapeHtml(task.result ?? "-")}</div>
+      </div>
+
+      <div class="grid2">
+        <div class="kv"><div class="k">createdAt</div><div class="v">${escapeHtml(task.createdAt)}</div></div>
+        <div class="kv"><div class="k">updatedAt</div><div class="v">${escapeHtml(task.updatedAt)}</div></div>
+      </div>
+
+      <div class="help">
+        ※ 상태 변경은 별도 API(예: PATCH /tasks/{id}/status 등)로 붙이면 여기서도 제어 가능.
+      </div>
+    `;
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">닫기</button>
+    `;
+        openModal("업무 상세", body, footer);
+    }
+
+    function renderBlankRowPicker(hour){
+        // 이미 표에 들어간 DEF(글로벌 + 현재 표시된 비글로벌) 제외하고 추가 가능한 DEF만 보여주기
+        const existingDefIds = new Set(state.rows.filter(r=>r.type==="DEF").map(r=>r.defId));
+        const available = state.defs
+            .filter(d => !existingDefIds.has(d.id))
+            .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""));
+
+        const options = available.map(d=>`
+      <option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} · ${escapeHtml(d.valueType)} ${d.global ? "(GLOBAL)" : "(HOSPITAL)"}</option>
+    `).join("");
+
+        const body = `
+      <div class="help">
+        공백 행에 추가할 항목을 선택하세요. (선택 후 해당 시간(${hour}시)에 Task 생성도 같이 진행)
+      </div>
+      <div class="grid2">
+        <div>
+          <div class="muted" style="margin:0 0 6px">추가할 TaskDefinition</div>
+          <select id="pickDef">
+            ${options || `<option value="">추가 가능한 항목이 없습니다</option>`}
+          </select>
+        </div>
+        <div>
+          <div class="muted" style="margin:0 0 6px">업무 메모(선택)</div>
+          <input id="pickNotes" type="text" placeholder="예: 측정 후 기록" />
+        </div>
+      </div>
+      <div class="muted">선택한 항목은 표에 새 행으로 추가됩니다.</div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">취소</button>
+      <button id="btnAddDefAndCreate" ${available.length ? "" : "disabled"}>추가 + 생성</button>
+    `;
+
+        openModal("공백 행: 항목 추가", body, footer);
+
+        $("#btnAddDefAndCreate")?.addEventListener("click", async ()=>{
+            const defId = $("#pickDef").value;
+            if(!defId){ toast("선택 가능한 항목이 없습니다."); return; }
+            const notes = $("#pickNotes").value || null;
+            try{
+                await createTask(defId, hour, notes);
+                // 새 defId가 등장했으니 rows 재구성 후 렌더
+                await reloadAll(false);
+                closeModal();
+                toast("추가 및 생성 완료");
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
+
+    function renderCreateTaskModal(defId, hour){
+        const def = state.defById.get(defId);
+        const body = `
+      <div class="help">
+        <b>${escapeHtml(def?.name ?? defId)}</b> · ${escapeHtml(state.date)} / ${hour}시 Task를 생성합니다.
+      </div>
+      <div class="grid2">
+        <div>
+          <div class="muted" style="margin:0 0 6px">업무 메모(taskNotes)</div>
+          <input id="createNotes" type="text" placeholder="예: 체온 측정 후 기록" />
+        </div>
+        <div>
+          <div class="muted" style="margin:0 0 6px">담당자 staffId(선택)</div>
+          <input id="createAssignee" type="text" placeholder="214c43a5-5a9a-4c75-8f3f-669c10136e5a" />
+        </div>
+      </div>
+      <div class="muted">※ 생성되면 기본 상태는 PENDING 입니다.</div>
+    `;
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">취소</button>
+      <button id="btnCreateTask">생성</button>
+    `;
+        openModal("업무 생성", body, footer);
+
+        $("#btnCreateTask").addEventListener("click", async ()=>{
+            const notes = $("#createNotes").value || null;
+            const assigneeId = $("#createAssignee").value.trim() || null;
+            try{
+                await createTask(defId, hour, notes, assigneeId);
+                await reloadAll(false);
+                closeModal();
+                toast("업무가 생성되었습니다.");
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
+
+    /***********************
+     * CORE ACTIONS
+     ***********************/
+    async function loadInitial(patientId, date){
+        state.patientId = patientId;
+        state.date = date;
+
+        // 1) patient
+        state.patient = await API.getPatient(patientId);
+
+        // 2) defs
+        state.defs = await API.getTaskDefinitions();
+        state.defById = new Map(state.defs.map(d => [d.id, d]));
+        state.globalDefs = state.defs.filter(d => d.global);
+        state.nonGlobalDefs = state.defs.filter(d => !d.global);
+
+        // 3) tasks (for date)
+        state.tasks = await API.getPatientDayTasks(patientId, date);
+
+        buildTaskMap();
+        buildRows();
+
+        renderPatient();
+        renderTable();
+    }
+
+    async function reloadAll(showToast=true){
+        if(!state.patientId || !state.date) return;
+        // patient는 큰 변화 없으니 defs+tasks만 새로고침해도 되지만 여기선 안전하게:
+        try{
+            if(showToast) toast("새로고침 중...");
+            state.patient = await API.getPatient(state.patientId);
+            state.defs = await API.getTaskDefinitions();
+            state.defById = new Map(state.defs.map(d => [d.id, d]));
+            state.globalDefs = state.defs.filter(d => d.global);
+            state.nonGlobalDefs = state.defs.filter(d => !d.global);
+            state.tasks = await API.getPatientDayTasks(state.patientId, state.date);
+
+            buildTaskMap();
+            buildRows();
+            renderPatient();
+            renderTable();
+            if(showToast) toast("새로고침 완료");
+        }catch(e){
+            toast(e.message);
+        }
+    }
+
+    async function createTask(defId, hour, notes=null, assigneeId=null){
+        const payload = {
+            patientId: state.patientId,
+            taskDefinitionId: defId,
+            taskDate: state.date,
+            taskHour: hour,
+            taskNotes: notes,
+            assigneeId: assigneeId
+        };
+        return await API.createTask(payload);
+    }
+
+    /***********************
+     * TABLE CLICK HANDLER
+     ***********************/
+    $("#chartTable").addEventListener("click", (e)=>{
+        const td = e.target.closest("td.cell");
+        if(!td) return;
+
+        const rowType = td.dataset.rowType;
+        const defId = td.dataset.defId;
+        const hour = Number(td.dataset.hour);
+
+        if(rowType === "DEF"){
+            // DEF row: task exists? then show detail, else create
+            const t = state.taskMap.get(`${defId}|${hour}`) ?? null;
+            if(t){
+                renderTaskDetail(t);
+            }else{
+                renderCreateTaskModal(defId, hour);
+            }
+        }else{
+            // BLANK row: show definition picker (exclude already in table)
+            renderBlankRowPicker(hour);
+        }
+    });
+
+    /***********************
+     * BOOTSTRAP
+     ***********************/
+    function setInputsFromState(){
+        $("#patientIdInput").value = state.patientId ?? "";
+        $("#dateInput").value = state.date ?? "";
+    }
+
+    async function boot(){
+        // URL에서 pid/date 먼저
+        const { pid, date } = getPathParamsFromUrl();
+
+        // 기본값 (샘플 더미)
+        const defaultPid = "e2da4625-7158-496f-9f84-9d26b7086ef2";
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth()+1).padStart(2,"0");
+        const dd = String(today.getDate()).padStart(2,"0");
+        const defaultDate = `${yyyy}-${mm}-${dd}`;
+
+        state.patientId = pid || defaultPid;
+        state.date = date || defaultDate;
+
+        setInputsFromState();
+
+        try{
+            await loadInitial(state.patientId, state.date);
+            toast("불러오기 완료");
+        }catch(e){
+            toast(e.message);
+        }
+    }
+
+    $("#btnLoad").addEventListener("click", async ()=>{
+        const pid = $("#patientIdInput").value.trim();
+        const date = $("#dateInput").value;
+        if(!pid){ toast("patientId를 입력해줘"); return; }
+        if(!date){ toast("date를 선택해줘"); return; }
+
+        // 주소도 목적대로 변경 (원하면)
+        const newUrl = `/patients/${pid}/management-charts/${date}`;
+        history.pushState({}, "", newUrl);
+
+        try{
+            await loadInitial(pid, date);
+            toast("불러오기 완료");
+        }catch(e){
+            toast(e.message);
+        }
+    });
+
+    $("#btnReload").addEventListener("click", ()=> reloadAll(true));
+
+    window.closeModal = closeModal;
+
+    boot();
+</script>
+</body>
+</html>

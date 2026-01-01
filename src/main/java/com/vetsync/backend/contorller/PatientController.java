@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -30,5 +27,11 @@ public class PatientController {
                                              @Valid @RequestBody PatientRegisterRequest patientRegisterRequest) {
         PatientInfoResponse patientInfoResponse = patientService.registerPatient(hospitalId, staffId,patientRegisterRequest);
         return ResponseEntity.ok(patientInfoResponse);
+    }
+
+    @GetMapping("/{patientId}")
+    @Operation(summary = "환자 정보 조회", description = "환자의 정보를 조회합니다")
+    public ResponseEntity<PatientInfoResponse> getPatientInfo(@HospitalId UUID hospitalId, @PathVariable UUID patientId) {
+        return ResponseEntity.ok(patientService.getPatientInfo(hospitalId, patientId));
     }
 }

@@ -6,8 +6,6 @@ import com.vetsync.backend.dto.task.TaskInfoResponse;
 import com.vetsync.backend.dto.task.TaskStatusChangeRequest;
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
-import com.vetsync.backend.repository.PatientRepository;
-import com.vetsync.backend.repository.TaskDefinitionRepository;
 import com.vetsync.backend.repository.TaskRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -22,21 +20,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TaskService {
     private final TaskRepository taskRepository;
-    private final PatientRepository patientRepository;
-    private final TaskDefinitionRepository taskDefinitionRepository;
+    private final PatientService patientService;
+    private final TaskDefinitionService taskDefinitionService;
     private final EntityManager entityManager;
 
     // Create Task
     @Transactional
     public TaskInfoResponse create(UUID hospitalId, UUID staffId, TaskCreateRequest req) {
         // 병원에 존재하지 않는 환자
-        if(!patientRepository.existsByIdAndHospital_Id(req.patientId(), hospitalId)) {
-            throw new CustomException(ErrorCode.PATIENT_NOT_FOUND);
-        }
+        patientService.validatePatientAccessible(hospitalId, req.patientId());
         // 병원에 존재하지 않는 업무 정의
-        if(!taskDefinitionRepository.existsByIdAndHospital_Id(req.taskDefinitionId(),hospitalId)) {
-            throw new CustomException(ErrorCode.TASK_DEFINITION_NOT_FOUND);
-        }
+        taskDefinitionService.validateTaskDefinitionAccessible(hospitalId, req.taskDefinitionId());
+
         // 중복된 업무 일정
         if(taskRepository.existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHour(hospitalId, req.patientId(), req.taskDate(), req.taskHour())){
             throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);
@@ -65,7 +60,7 @@ public class TaskService {
 
         // result 반영 (요구사항: 상태변화 요청에 포함)
         task.setResult(req.result());
-        if(!req.result().isBlank()){
+        if( req.result()!= null && !req.result().isBlank()){
             task.setStatus(req.status());
         }
 
@@ -82,9 +77,7 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskInfoResponse> getPatientTasks(UUID hospitalId, UUID patientId) {
-        if (!patientRepository.existsByIdAndHospital_Id(patientId, hospitalId)) {
-            throw new CustomException(ErrorCode.PATIENT_NOT_FOUND);
-        }
+        patientService.validatePatientAccessible(hospitalId,patientId);
 
         return taskRepository.findAllByHospital_IdAndPatient_Id(hospitalId, patientId)
                 .stream()
@@ -94,9 +87,7 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskInfoResponse> getPatientDayTasks(UUID hospitalId, UUID patientId, LocalDate taskDate) {
-        if (!patientRepository.existsByIdAndHospital_Id(patientId, hospitalId)) {
-            throw new CustomException(ErrorCode.PATIENT_NOT_FOUND);
-        }
+        patientService.validatePatientAccessible(hospitalId,patientId);
 
         return taskRepository
                 .findAllByHospital_IdAndPatient_IdAndTaskDate(hospitalId, patientId, taskDate)
