@@ -34,8 +34,11 @@ public enum ErrorCode {
     OWNER_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 등록된 보호자입니다."),
 
     // Patient
-    PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "요청하신 환자를 찾을 수 없습니다.");
+    PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "요청하신 환자를 찾을 수 없습니다."),
 
+    // Task
+    TASK_DEFINITION_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "요청하신 업무 정의를 찾을 수 없습니다."),
+    TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "T002", "요청하신 업무를 찾을 수 없습니다.");
     private final HttpStatus status;
     private final String code;
     private final String message;

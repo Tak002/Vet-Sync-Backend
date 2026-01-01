@@ -109,6 +109,9 @@ CREATE TABLE tasks (
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
     task_definition_id uuid NOT NULL,
+    -- 업무 예정 일자 / 시간
+    task_date date NOT NULL,               -- YYYY-MM-DD
+    task_hour smallint NOT NULL,            -- 0 ~ 23
     task_notes text,
     status task_status NOT NULL,
     result text,

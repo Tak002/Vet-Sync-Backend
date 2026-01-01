@@ -3,10 +3,11 @@ package com.vetsync.backend.domain;
 import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.TaskStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ import java.util.UUID;
 @Table(name = "tasks")
 @Getter @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Task extends BaseTimeEntity {
 
     @Id
@@ -29,15 +32,24 @@ public class Task extends BaseTimeEntity {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    // 업무 예정 날짜 (YYYY-MM-DD)
+    @Column(name = "task_date", nullable = false)
+    private LocalDate taskDate;
+
+    // 업무 예정 시간 (0~23)
+    @Column(name = "task_hour", nullable = false)
+    private Integer taskHour;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_definition_id", nullable = false)
     private TaskDefinition taskDefinition;
 
     private String taskNotes;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
-    private TaskStatus status;
+    @Builder.Default
+    private TaskStatus status= TaskStatus.PENDING;
 
     private String result;
 
@@ -49,7 +61,8 @@ public class Task extends BaseTimeEntity {
     @JoinColumn(name = "created_by", nullable = false)
     private Staff createdBy;
 
-    private OffsetDateTime startedAt;
-    private OffsetDateTime confirmRequestedAt;
-    private OffsetDateTime completedAt;
+    // Timestamps for status changes
+    private OffsetDateTime startedAt; // when the status changed to IN_PROGRESS
+    private OffsetDateTime confirmRequestedAt; // when the status changed to CONFIRM_WAITING
+    private OffsetDateTime completedAt; // when the status changed to COMPLETED
 }
