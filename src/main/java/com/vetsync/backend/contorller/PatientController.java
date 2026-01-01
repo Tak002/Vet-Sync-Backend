@@ -3,9 +3,7 @@ package com.vetsync.backend.contorller;
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;
 import com.vetsync.backend.global.annotation.HospitalId;
-import com.vetsync.backend.global.annotation.Role;
 import com.vetsync.backend.global.annotation.StaffId;
-import com.vetsync.backend.global.enums.StaffRole;
 import com.vetsync.backend.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,9 +26,9 @@ public class PatientController {
 
     @PostMapping
     @Operation(summary = "환자 등록", description = "새로운 환자를 등록합니다")
-    public ResponseEntity<?> registerPatient(@HospitalId UUID hospitalId, @StaffId UUID staffId, @Role StaffRole staffRole,
+    public ResponseEntity<?> registerPatient(@HospitalId UUID hospitalId, @StaffId UUID staffId,
                                              @Valid @RequestBody PatientRegisterRequest patientRegisterRequest) {
-        PatientInfoResponse patientInfoResponse = patientService.registerPatient(patientRegisterRequest);
+        PatientInfoResponse patientInfoResponse = patientService.registerPatient(hospitalId, staffId,patientRegisterRequest);
         return ResponseEntity.ok(patientInfoResponse);
     }
 }

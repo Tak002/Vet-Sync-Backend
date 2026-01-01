@@ -197,3 +197,6 @@ CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
 
 CREATE UNIQUE INDEX uq_patient_day_notes_unique
     ON patient_day_notes (hospital_id, patient_id, note_date);
+
+CREATE UNIQUE INDEX uq_patient_hospital_owner_name
+    ON patients (hospital_id, owner_id, name);

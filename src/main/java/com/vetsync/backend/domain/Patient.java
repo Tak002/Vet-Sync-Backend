@@ -6,6 +6,8 @@ import com.vetsync.backend.global.enums.PatientSpecies;
 import com.vetsync.backend.global.enums.PatientStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -33,18 +35,18 @@ public class Patient extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private PatientSpecies species;
 
     private String speciesDetail;
     private String breed;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private PatientGender gender;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     @Builder.Default
     private PatientStatus status = PatientStatus.REGISTERED;
