@@ -1,5 +1,5 @@
 jwt:
-  secret-base64: "asdfsbasdfwerwercghert232123asdlkfsdlkafjlkjxcklvlksjdfklskldfjlk313124"
+  secret-base64: ${JWT_SECRET_KEY}
   access-token-minutes: 60
 spring:
   jpa:
