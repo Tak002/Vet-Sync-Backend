@@ -1,4 +1,4 @@
-package com.vetsync.backend.contorller;
+package com.vetsync.backend.controller;
 
 import com.vetsync.backend.service.ManagementChartService;
 import lombok.RequiredArgsConstructor;

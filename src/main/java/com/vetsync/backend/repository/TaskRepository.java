@@ -1,6 +1,9 @@
 package com.vetsync.backend.repository;
 
 import com.vetsync.backend.domain.Task;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -16,4 +19,6 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findAllByHospital_IdAndPatient_IdAndTaskDate(UUID hospitalId, UUID patientId, LocalDate taskDate);
 
     List<Task> findAllByHospital_IdAndPatient_Id(UUID hospitalId, UUID patientId);
+
+    boolean existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(UUID hospitalId, @NotNull UUID uuid, @NotNull LocalDate localDate, @NotNull @Min(0) @Max(23) Integer integer, @NotNull UUID TaskDefinitionId);
 }

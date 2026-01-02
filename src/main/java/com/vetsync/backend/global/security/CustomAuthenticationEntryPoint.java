@@ -1,6 +1,6 @@
 package com.vetsync.backend.global.security;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vetsync.backend.global.ErrorResponse;
 import com.vetsync.backend.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -30,7 +29,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         String authError = (String) request.getAttribute("auth_error");
 
         ErrorCode errorCode;
-        if("ACCESS_TOKEN_VALID".equals(authError)) {
+        if("ACCESS_TOKEN_EXPIRED".equals(authError)) {
             errorCode = ErrorCode.ACCESS_TOKEN_EXPIRED;
         }else{
             errorCode = ErrorCode.INVALID_TOKEN;

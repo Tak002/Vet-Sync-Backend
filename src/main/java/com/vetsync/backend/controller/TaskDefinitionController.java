@@ -1,4 +1,4 @@
-package com.vetsync.backend.contorller;
+package com.vetsync.backend.controller;
 
 import com.vetsync.backend.dto.task.TaskDefinitionResponse;
 import com.vetsync.backend.global.annotation.HospitalId;

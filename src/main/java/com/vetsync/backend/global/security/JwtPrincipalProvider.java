@@ -1,4 +1,4 @@
-package com.vetsync.backend.global.jwt;
+package com.vetsync.backend.global.security;
 
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;

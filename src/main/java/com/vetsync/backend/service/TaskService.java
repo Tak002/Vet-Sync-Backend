@@ -33,7 +33,7 @@ public class TaskService {
         taskDefinitionService.validateTaskDefinitionAccessible(hospitalId, req.taskDefinitionId());
 
         // 중복된 업무 일정
-        if(taskRepository.existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHour(hospitalId, req.patientId(), req.taskDate(), req.taskHour())){
+        if(taskRepository.existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(hospitalId, req.patientId(), req.taskDate(), req.taskHour(),req.taskDefinitionId())){
             throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);
         }
 

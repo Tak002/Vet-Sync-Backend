@@ -8,7 +8,7 @@ import com.vetsync.backend.dto.auth.StaffSignupRequest;
 import com.vetsync.backend.dto.auth.StaffSignupResponse;
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
-import com.vetsync.backend.global.jwt.JwtTokenProvider;
+import com.vetsync.backend.global.security.JwtTokenProvider;
 import com.vetsync.backend.global.security.StaffPrincipal;
 import com.vetsync.backend.repository.HospitalRepository;
 import com.vetsync.backend.repository.StaffRepository;

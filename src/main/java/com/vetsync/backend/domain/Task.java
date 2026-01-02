@@ -17,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"hospital", "patient", "taskDefinition", "assignee", "createdBy"})
 public class Task extends BaseTimeEntity {
 
     @Id

@@ -1,4 +1,4 @@
-package com.vetsync.backend.contorller;
+package com.vetsync.backend.controller;
 
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;

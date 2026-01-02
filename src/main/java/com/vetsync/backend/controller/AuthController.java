@@ -1,4 +1,4 @@
-package com.vetsync.backend.contorller;
+package com.vetsync.backend.controller;
 
 import com.vetsync.backend.dto.auth.LoginRequest;
 import com.vetsync.backend.dto.auth.LoginResponse;
@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class AuthController {
                     )
             )
     })
+    @SecurityRequirements()
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest req
     ) {
@@ -57,6 +59,7 @@ public class AuthController {
     @PostMapping("/signup")
     @Operation(summary = "직원 회원가입", description = "새로운 직원을 등록합니다.")
     @ApiResponse(responseCode = "200", description = "회원가입 성공")
+    @SecurityRequirements()
     public ResponseEntity<StaffSignupResponse> signup(
             @Valid @RequestBody StaffSignupRequest req
     ) {

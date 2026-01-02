@@ -1,7 +1,8 @@
 package com.vetsync.backend.global.config;
 
-import com.vetsync.backend.global.jwt.JwtAuthFilter;
-import com.vetsync.backend.global.jwt.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vetsync.backend.global.security.JwtAuthFilter;
+import com.vetsync.backend.global.security.JwtTokenProvider;
 import com.vetsync.backend.global.security.CustomAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +34,10 @@ public class SecurityConfig {
             "/.well-known/**",
             "/favicon.ico"
     };
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 
     @Bean
     public RequestMatcher skipJwtMatcher() {
@@ -53,10 +57,10 @@ public class SecurityConfig {
 
     @Bean
     public JwtTokenProvider jwtTokenProvider(
-            @Value("${jwt.secret-base64}") String secretBase64,
+            @Value("${jwt.secret}") String secret,
             @Value("${jwt.access-token-minutes}") long minutes
     ) {
-        return new JwtTokenProvider(secretBase64, minutes);
+        return new JwtTokenProvider(secret, minutes);
     }
 
     @Bean

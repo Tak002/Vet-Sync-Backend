@@ -1,4 +1,4 @@
-package com.vetsync.backend.global.jwt;
+package com.vetsync.backend.global.security;
 
 import com.vetsync.backend.global.enums.StaffRole;
 import io.jsonwebtoken.Claims;

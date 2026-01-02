@@ -17,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@ToString(exclude = {"hospital", "owner","createdBy"})
 public class Patient extends BaseTimeEntity {
 
     @Id
