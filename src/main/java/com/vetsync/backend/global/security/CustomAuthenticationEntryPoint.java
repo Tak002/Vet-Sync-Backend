@@ -29,9 +29,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         String authError = (String) request.getAttribute("auth_error");
 
-        ErrorCode errorCode = authError.equals("ACCESS_TOKEN_EXPIRED") ?
-                ErrorCode.ACCESS_TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN;
-
+        ErrorCode errorCode;
+        if("ACCESS_TOKEN_VALID".equals(authError)) {
+            errorCode = ErrorCode.ACCESS_TOKEN_EXPIRED;
+        }else{
+            errorCode = ErrorCode.INVALID_TOKEN;
+        }
 
         // 여기서 무조건 401로 내리는 걸 추천(토큰 문제는 401)
         response.setStatus(errorCode.getStatus().value());

@@ -12,10 +12,39 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class SecurityConfig {
+
+    private static final String[] PUBLIC_URLS = {
+            "/auth/login",
+            "/auth/signup",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/management-charts.html",
+            "/error",
+            "/.well-known/**",
+            "/favicon.ico"
+    };
+
+    @Bean
+    public RequestMatcher skipJwtMatcher() {
+        PathPatternRequestMatcher.Builder b = PathPatternRequestMatcher.withDefaults();
+
+        List<RequestMatcher> matchers = Arrays.stream(PUBLIC_URLS)
+                .map(b::matcher)
+                .collect(Collectors.toList());
+
+        return new OrRequestMatcher(matchers);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -31,7 +60,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwt, ObjectMapper objectMapper
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwt, ObjectMapper objectMapper, RequestMatcher skipJwtMatcher
+
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -40,16 +70,14 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/login",
-                                "/auth/signup",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/management-charts.html")
+                        .requestMatchers(PUBLIC_URLS)
                         .permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthFilter(jwt), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthFilter(jwt,skipJwtMatcher), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
+
+
 }
