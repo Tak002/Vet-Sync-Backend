@@ -19,8 +19,6 @@
             --confirm:#2a0b3a;
             --completed:#0a3a17;
 
-            --chip:#14264a;
-
             --shadow: 0 10px 25px rgba(0,0,0,.35);
             --radius: 14px;
         }
@@ -342,10 +340,6 @@
             justify-content:flex-end;
             flex-wrap:wrap;
         }
-        .danger{
-            background: rgba(255,80,80,.15);
-            border-color: rgba(255,80,80,.30);
-        }
         .muted{
             color: var(--muted);
             font-size:12px;
@@ -459,8 +453,8 @@
         patient: null,
         defs: [],
         defById: new Map(),
-        globalDefs: [],
-        nonGlobalDefs: [],
+        fixedDefs: [],     // ✅ fixed=true
+        notFixedDefs: [],  // ✅ fixed=false
         rows: [],
         taskMap: new Map(),
         tasks: [],
@@ -514,7 +508,6 @@
         const headers = opts.headers ? {...opts.headers} : {};
         headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
 
-        // ✅ JWT 자동 헤더 주입
         const token = (state.jwtToken ?? "").trim();
         if(token){
             headers["Authorization"] = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -524,7 +517,6 @@
         if(!res.ok){
             let body = "";
             try { body = await res.text(); } catch {}
-            // 401은 토큰 문제일 확률이 높으니 메시지 개선
             if(res.status === 401){
                 throw new Error(`HTTP 401 Unauthorized - JWT 토큰을 확인해줘. ${body}`.trim());
             }
@@ -577,7 +569,8 @@
      * BUILD ROWS
      ***********************/
     function buildRows(){
-        const globalRows = state.globalDefs
+        // ✅ fixed=true 인 정의는 Task가 없어도 항상 표에 존재 (기존 global과 동일)
+        const fixedRows = state.fixedDefs
             .slice()
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
             .map(def => ({
@@ -587,12 +580,14 @@
                 desc: def.description ?? ""
             }));
 
-        const usedNonGlobalDefIds = new Set();
+        // ✅ fixed=false 인 정의는 "그 날짜에 실제 Task가 있는 것만" 표에 노출
+        const usedNotFixedDefIds = new Set();
         for(const t of state.tasks){
             const def = state.defById.get(t.taskDefinitionId);
-            if(def && !def.global) usedNonGlobalDefIds.add(def.id);
+            if(def && !def.fixed) usedNotFixedDefIds.add(def.id);
         }
-        const nonGlobalRows = Array.from(usedNonGlobalDefIds)
+
+        const notFixedRows = Array.from(usedNotFixedDefIds)
             .map(id => state.defById.get(id))
             .filter(Boolean)
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
@@ -610,7 +605,7 @@
             desc: "클릭해서 항목 추가"
         }));
 
-        state.rows = [...globalRows, ...nonGlobalRows, ...blankRows];
+        state.rows = [...fixedRows, ...notFixedRows, ...blankRows];
     }
 
     function buildTaskMap(){
@@ -638,7 +633,7 @@
           <th>처치시간</th>
           <th colspan="12">AM</th>
           <th colspan="12">PM</th>
-          <th>Order &amp; Results</th>
+          <th>Info</th>
         </tr>
         <tr>
           <th></th>
@@ -704,9 +699,8 @@
             const right = (() => {
                 if(r.type==="DEF"){
                     const def = state.defById.get(r.defId);
-                    const vt = def?.valueType ?? "-";
-                    const g = def?.global ? "GLOBAL" : "HOSPITAL";
-                    return `<td title="${escapeHtml(def?.description ?? "")}">${escapeHtml(g)} · ${escapeHtml(vt)}</td>`;
+                    const fx = def?.fixed ? "FIXED" : "OPTIONAL";
+                    return `<td title="${escapeHtml(def?.description ?? "")}">${escapeHtml(fx)}</td>`;
                 }
                 return `<td class="muted">빈 행(클릭→항목 선택)</td>`;
             })();
@@ -774,12 +768,16 @@
 
     function renderBlankRowPicker(hour){
         const existingDefIds = new Set(state.rows.filter(r=>r.type==="DEF").map(r=>r.defId));
+
+        // ✅ 공백행에서 추가 가능한 것 = fixed=false 중 아직 표에 없는 것들
+        // (fixed=true는 이미 항상 표에 있으니 제외)
         const available = state.defs
+            .filter(d => !d.fixed)
             .filter(d => !existingDefIds.has(d.id))
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""));
 
         const options = available.map(d=>`
-      <option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} · ${escapeHtml(d.valueType)} ${d.global ? "(GLOBAL)" : "(HOSPITAL)"}</option>
+      <option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} ${d.fixed ? "(FIXED)" : "(OPTIONAL)"}</option>
     `).join("");
 
         const body = `
@@ -871,9 +869,11 @@
         state.patient = await API.getPatient(patientId);
 
         state.defs = await API.getTaskDefinitions();
+
+        // ✅ DTO 변경 반영: fixed 필드로 분기
         state.defById = new Map(state.defs.map(d => [d.id, d]));
-        state.globalDefs = state.defs.filter(d => d.global);
-        state.nonGlobalDefs = state.defs.filter(d => !d.global);
+        state.fixedDefs = state.defs.filter(d => !!d.fixed);
+        state.notFixedDefs = state.defs.filter(d => !d.fixed);
 
         state.tasks = await API.getPatientDayTasks(patientId, date);
 
@@ -890,9 +890,11 @@
             if(showToast) toast("새로고침 중...");
             state.patient = await API.getPatient(state.patientId);
             state.defs = await API.getTaskDefinitions();
+
             state.defById = new Map(state.defs.map(d => [d.id, d]));
-            state.globalDefs = state.defs.filter(d => d.global);
-            state.nonGlobalDefs = state.defs.filter(d => !d.global);
+            state.fixedDefs = state.defs.filter(d => !!d.fixed);
+            state.notFixedDefs = state.defs.filter(d => !d.fixed);
+
             state.tasks = await API.getPatientDayTasks(state.patientId, state.date);
 
             buildTaskMap();
@@ -979,7 +981,6 @@
         if(!pid){ toast("patientId를 입력해줘"); return; }
         if(!date){ toast("date를 선택해줘"); return; }
 
-        // 주소 표기는 기존 유지(원하면 바꿔도 됨)
         const newUrl = `/patients/${pid}/management-charts/${date}`;
         history.pushState({}, "", newUrl);
 

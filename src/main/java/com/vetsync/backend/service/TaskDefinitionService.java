@@ -1,6 +1,5 @@
 package com.vetsync.backend.service;
 
-import com.vetsync.backend.domain.TaskDefinition;
 import com.vetsync.backend.dto.task.TaskDefinitionResponse;
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
@@ -24,10 +23,7 @@ public class TaskDefinitionService {
         if(!hospitalRepository.existsById(hospitalId)) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);
         }
-        TaskDefinition taskDefinition = taskDefinitionRepository.findById(taskDefinitionId).orElseThrow(
-                () -> new CustomException(ErrorCode.TASK_DEFINITION_NOT_FOUND)
-        );
-        if(!taskDefinition.isGlobal() && !taskDefinition.getHospital().getId().equals(hospitalId)) {
+        if(!taskDefinitionRepository.existsByIdAndHospital_Id(taskDefinitionId,hospitalId)){
             throw new CustomException(ErrorCode.TASK_DEFINITION_NOT_FOUND);
         }
     }
@@ -37,7 +33,7 @@ public class TaskDefinitionService {
         if(!hospitalRepository.existsById(hospitalId)) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);
         }
-        return taskDefinitionRepository.findAllByHospitalIdOrIsGlobalTrue(hospitalId).stream()
+        return taskDefinitionRepository.findAllByHospitalId(hospitalId).stream()
                 .map(TaskDefinitionResponse::from)
                 .toList();
     }

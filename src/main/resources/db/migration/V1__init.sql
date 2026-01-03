@@ -98,9 +98,8 @@ CREATE TABLE patients (
 CREATE TABLE task_definitions (
     id uuid PRIMARY KEY,
     name varchar(255) NOT NULL,
-    is_global boolean NOT NULL,
+    is_fixed boolean NOT NULL,
     hospital_id uuid,
-    value_type medical_value_type NOT NULL,
     description text
 );
 
