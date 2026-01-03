@@ -83,7 +83,6 @@
         button:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
         .btn-ghost{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.10); }
         .btn-success{ background: rgba(70,220,140,.14); border-color: rgba(70,220,140,.30); }
-        .btn-danger{ background: rgba(255,80,80,.15); border-color: rgba(255,80,80,.30); }
 
         .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
         .pill{
@@ -187,7 +186,7 @@
         .modal header .close{background: rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:8px 10px;border-radius: 10px}
         .modal .body{padding:14px;display:flex;gap:12px;flex-direction:column}
         .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .help{font-size:12px;color:var(--muted);line-height:1.45}
         textarea, select{
             width:100%;
@@ -215,11 +214,6 @@
             font-size:12px;
             color: var(--muted);
         }
-        .two-col{
-            display:grid;
-            grid-template-columns: 1fr 1fr;
-            gap:10px;
-        }
         .field .muted{margin:0 0 6px}
 
         @media (max-width: 980px){
@@ -227,7 +221,6 @@
             .actions{width:100%;}
             .meta{grid-template-columns: repeat(2, minmax(0,1fr));}
             th:nth-child(2), td:nth-child(2){ left: 160px; }
-            .grid3{ grid-template-columns: 1fr; }
             .two-col{ grid-template-columns: 1fr; }
         }
     </style>
@@ -285,6 +278,7 @@
             <div class="help">
                 • 셀 클릭 → Task 생성/상세<br/>
                 • 상세에서 상태/담당자/메모/결과 수정 가능<br/>
+                • PATCH 규칙: <b>null=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
             </div>
         </div>
     </div>
@@ -313,14 +307,9 @@
      * CONFIG
      ***********************/
     const API_BASE = "";
-
-    const HOURS = Array.from({length: 24}, (_, i) => i); // 0~23
-    const hourLabel = (h) => {
-        const v = h % 12 === 0 ? 12 : (h % 12);
-        return String(v);
-    };
+    const HOURS = Array.from({length: 24}, (_, i) => i);
+    const hourLabel = (h) => String(h % 12 === 0 ? 12 : (h % 12));
     const hourPeriod = (h) => (h < 12 ? "AM" : "PM");
-
     const STATUS_LIST = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
 
     /***********************
@@ -364,9 +353,7 @@
         const parts = location.pathname.split("/").filter(Boolean);
         const idx = parts.indexOf("patients");
         if(idx !== -1 && parts[idx+2] === "management-charts"){
-            const pid = parts[idx+1];
-            const date = parts[idx+3];
-            return { pid, date };
+            return { pid: parts[idx+1], date: parts[idx+3] };
         }
         return { pid: null, date: null };
     }
@@ -410,23 +397,20 @@
         return text ? JSON.parse(text) : null;
     }
 
-    function staffLabel(staff){
-        if(!staff) return "-";
-        const active = staff.isActive ? "재직" : "비활성";
-        return `${staff.name} (${staff.role} · ${active})`;
-    }
     function staffLabelById(id){
-        if(!id) return "-";
+        if(!id) return "(미지정)";
         const s = state.staffById.get(id);
-        return s ? staffLabel(s) : id;
+        if(!s) return id;
+        return `${s.name} (${s.role}${s.isActive ? "" : " · 비활성"})`;
     }
 
     function renderStaffSelect(selectId, selectedStaffId){
         const list = (state.staffs ?? []).slice()
             .sort((a,b)=> (b.isActive - a.isActive) || (a.name ?? "").localeCompare(b.name ?? ""));
 
+        // 값 비우기 규칙: "" 이면 "미지정으로 저장"
         const options = [
-            `<option value="">(미지정)</option>`,
+            `<option value="">(미지정으로 저장)</option>`,
             ...list.map(s => {
                 const selected = (s.id === selectedStaffId) ? "selected" : "";
                 const inactive = s.isActive ? "" : " [비활성]";
@@ -438,11 +422,45 @@
     }
 
     function renderStatusSelect(selectId, selectedStatus){
-        const options = STATUS_LIST.map(st => {
-            const sel = (st === selectedStatus) ? "selected" : "";
-            return `<option value="${escapeHtml(st)}" ${sel}>${escapeHtml(st)}</option>`;
-        }).join("");
-        return `<select id="${escapeHtml(selectId)}">${options}</select>`;
+        return `<select id="${escapeHtml(selectId)}">${
+            STATUS_LIST.map(st => `<option value="${escapeHtml(st)}" ${st===selectedStatus?"selected":""}>${escapeHtml(st)}</option>`).join("")
+        }</select>`;
+    }
+
+    /**
+     * PATCH payload 규칙:
+     * - null  : 변경 없음(필드 미포함으로 보냄)
+     * - ""    : 비우기(미지정/삭제)
+     * - "..." : 값 설정
+     *
+     * 여기서는 "변경 없음"을 payload에서 아예 제외하는 방식으로 구현.
+     * (서버가 null=변경없음이라도, 굳이 null을 보내지 않고 미포함으로도 동일하게 동작)
+     */
+    function buildPatchPayloadWithEmptyAllowed(originalTask, cur){
+        const payload = {};
+
+        // assigneeId: 변경 없으면 미포함, 변경되면 "" 또는 staffId 그대로 포함
+        const origAssignee = (originalTask.assigneeId ?? "");
+        const curAssignee = (cur.assigneeId ?? "");
+        if(curAssignee !== origAssignee){
+            payload.assigneeId = curAssignee; // "" 가능
+        }
+
+        // taskNotes: 변경 없으면 미포함, 지우면 "" 포함
+        const origNotes = (originalTask.taskNotes ?? "");
+        const curNotes = (cur.taskNotes ?? "");
+        if(curNotes !== origNotes){
+            payload.taskNotes = curNotes; // "" 가능
+        }
+
+        // result: 변경 없으면 미포함, 지우면 "" 포함
+        const origResult = (originalTask.result ?? "");
+        const curResult = (cur.result ?? "");
+        if(curResult !== origResult){
+            payload.result = curResult; // "" 가능
+        }
+
+        return payload;
     }
 
     /***********************
@@ -456,10 +474,7 @@
 
         getStaffs: () => apiFetch(`/staffs`, { method:"GET" }),
 
-        // ✅ 정보 변경 (status 제외)
         patchTask: (taskId, payload) => apiFetch(`/tasks/${taskId}`, { method:"PATCH", body: JSON.stringify(payload) }),
-
-        // ✅ 상태 변경
         patchTaskStatus: (taskId, status) => apiFetch(`/tasks/${taskId}/status`, { method:"PATCH", body: JSON.stringify({ status }) }),
     };
 
@@ -633,41 +648,40 @@
 
         const body = `
       <div class="help">
-        수정 저장:
-        <span class="chip">정보 변경(PATCH /tasks/{id})</span>
-        <span class="chip">상태 변경(PATCH /tasks/{id}/status)</span>
+        저장 규칙: <b>null(미포함)=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
+        • 정보(PATCH /tasks/{id}) / 상태(PATCH /tasks/{id}/status)
       </div>
 
       <div class="grid2">
         <div class="kv"><div class="k">Task ID</div><div class="v">${escapeHtml(task.id)}</div></div>
         <div class="kv"><div class="k">정의</div><div class="v">${escapeHtml(def?.name ?? task.taskDefinitionId)}</div></div>
         <div class="kv"><div class="k">날짜/시간</div><div class="v">${escapeHtml(task.taskDate)} / ${escapeHtml(task.taskHour)}시</div></div>
-        <div class="kv"><div class="k">병원</div><div class="v">${escapeHtml(task.hospitalId)}</div></div>
         <div class="kv"><div class="k">환자</div><div class="v">${escapeHtml(task.patientId)}</div></div>
         <div class="kv"><div class="k">생성자</div><div class="v">${escapeHtml(task.createdBy)}</div></div>
+        <div class="kv"><div class="k">현재 담당자</div><div class="v">${escapeHtml(staffLabelById(task.assigneeId))}</div></div>
       </div>
 
       <div class="two-col">
         <div class="field">
           <div class="muted">상태(status)</div>
           ${renderStatusSelect("detailStatusSelect", task.status)}
-          <div class="muted" style="margin-top:6px">※ 상태 저장은 별도 API로 요청</div>
+          <div class="muted" style="margin-top:6px">※ 상태 저장은 별도 버튼</div>
         </div>
 
         <div class="field">
-          <div class="muted">담당자(assignee)</div>
+          <div class="muted">담당자(assigneeId) (""=미지정)</div>
           ${renderStaffSelect("detailAssigneeSelect", task.assigneeId ?? "")}
-          <div class="muted" style="margin-top:6px">현재: ${escapeHtml(staffLabelById(task.assigneeId))}</div>
+          <div class="muted" style="margin-top:6px">현재: ${escapeHtml(task.assigneeId ?? "(null)")} / 표시: ${escapeHtml(staffLabelById(task.assigneeId))}</div>
         </div>
       </div>
 
       <div class="two-col">
         <div class="field">
-          <div class="muted">업무 메모(taskNotes)</div>
+          <div class="muted">업무 메모(taskNotes) (지우면 "" 전송)</div>
           <textarea id="detailNotes" placeholder="업무 메모를 입력">${escapeHtml(task.taskNotes ?? "")}</textarea>
         </div>
         <div class="field">
-          <div class="muted">결과(result)</div>
+          <div class="muted">결과(result) (지우면 "" 전송)</div>
           <textarea id="detailResult" placeholder="결과를 입력">${escapeHtml(task.result ?? "")}</textarea>
         </div>
       </div>
@@ -678,7 +692,7 @@
         <div class="kv"><div class="k">startedAt</div><div class="v">${escapeHtml(task.startedAt ?? "-")}</div></div>
         <div class="kv"><div class="k">confirmRequestedAt</div><div class="v">${escapeHtml(task.confirmRequestedAt ?? "-")}</div></div>
         <div class="kv"><div class="k">completedAt</div><div class="v">${escapeHtml(task.completedAt ?? "-")}</div></div>
-        <div class="kv"><div class="k">현재 담당자 ID</div><div class="v">${escapeHtml(task.assigneeId ?? "-")}</div></div>
+        <div class="kv"><div class="k">status</div><div class="v">${escapeHtml(task.status)}</div></div>
       </div>
 
       <div class="help" id="detailDiffHint">변경사항 없음</div>
@@ -711,22 +725,25 @@
         function computeDiff(){
             const cur = {
                 status: (elStatus.value ?? ""),
-                assigneeId: (elAssignee.value ?? ""),
-                taskNotes: (elNotes.value ?? ""),
-                result: (elResult.value ?? "")
+                assigneeId: (elAssignee.value ?? ""),        // "" 가능
+                taskNotes: (elNotes.value ?? ""),            // "" 가능
+                result: (elResult.value ?? "")               // "" 가능
             };
 
             const statusChanged = cur.status !== orig.status;
-            const infoChanged = (cur.assigneeId !== orig.assigneeId) || (cur.taskNotes !== orig.taskNotes) || (cur.result !== orig.result);
+            const infoChanged =
+                (cur.assigneeId !== orig.assigneeId) ||
+                (cur.taskNotes !== orig.taskNotes) ||
+                (cur.result !== orig.result);
 
             btnStatus.disabled = !statusChanged;
             btnInfo.disabled = !infoChanged;
 
             const parts = [];
             if(statusChanged) parts.push(`상태: ${orig.status} → ${cur.status}`);
-            if(cur.assigneeId !== orig.assigneeId) parts.push(`담당자: ${staffLabelById(orig.assigneeId) || "(미지정)"} → ${staffLabelById(cur.assigneeId) || "(미지정)"}`);
-            if(cur.taskNotes !== orig.taskNotes) parts.push("메모 변경");
-            if(cur.result !== orig.result) parts.push("결과 변경");
+            if(cur.assigneeId !== orig.assigneeId) parts.push(`담당자: ${staffLabelById(orig.assigneeId)} → ${staffLabelById(cur.assigneeId)}`);
+            if(cur.taskNotes !== orig.taskNotes) parts.push(`메모: ${cur.taskNotes === "" ? "삭제" : "변경"}`);
+            if(cur.result !== orig.result) parts.push(`결과: ${cur.result === "" ? "삭제" : "변경"}`);
 
             hint.textContent = parts.length ? `변경됨: ${parts.join(" / ")}` : "변경사항 없음";
             return {cur, statusChanged, infoChanged};
@@ -746,19 +763,22 @@
                 btnInfo.disabled = true;
                 btnInfo.textContent = "저장 중...";
 
-                const payload = {
-                    taskNotes: cur.taskNotes.trim() ? cur.taskNotes : null,
-                    result: cur.result.trim() ? cur.result : null,
-                    assigneeId: cur.assigneeId || null
-                };
+                // ✅ 규칙 반영: 변경된 것만 포함, 지우면 "" 포함, 변경없음은 미포함(=null 의미)
+                const payload = buildPatchPayloadWithEmptyAllowed(task, cur);
 
-                // ✅ PATCH /tasks/{taskId} (status 제외)
+                // 안전: 혹시 diff였는데 payload가 비어있으면(이론상 거의 없음) 요청 안 함
+                if(Object.keys(payload).length === 0){
+                    toast("변경사항 없음");
+                    btnInfo.textContent = "정보 저장";
+                    computeDiff();
+                    return;
+                }
+
                 const updated = await API.patchTask(task.id, payload);
 
                 toast("정보 저장 완료");
                 await reloadAll(false);
 
-                // 모달도 최신 데이터로 갱신
                 closeModal();
                 renderTaskDetail(updated);
             }catch(e){
@@ -776,7 +796,6 @@
                 btnStatus.disabled = true;
                 btnStatus.textContent = "저장 중...";
 
-                // ✅ PATCH /tasks/{taskId}/status
                 const updated = await API.patchTaskStatus(task.id, cur.status);
 
                 toast("상태 저장 완료");
@@ -871,8 +890,7 @@
 
         $("#btnCreateTask").addEventListener("click", async ()=>{
             const notes = $("#createNotes").value || null;
-            const assigneeId = $("#createAssigneeSelect").value.trim() || null;
-
+            const assigneeId = $("#createAssigneeSelect").value.trim(); // "" 가능 (미지정 저장)
             try{
                 await createTask(defId, hour, notes, assigneeId);
                 await reloadAll(false);
@@ -891,7 +909,6 @@
         state.patientId = patientId;
         state.date = date;
 
-        // 초기 1회: staff list
         try{
             state.staffs = await API.getStaffs();
             state.staffById = new Map((state.staffs ?? []).map(s => [s.id, s]));
@@ -940,14 +957,14 @@
         }
     }
 
-    async function createTask(defId, hour, notes=null, assigneeId=null){
+    async function createTask(defId, hour, notes=null, assigneeId=""){
         const payload = {
             patientId: state.patientId,
             taskDefinitionId: defId,
             taskDate: state.date,
             taskHour: hour,
-            taskNotes: notes,
-            assigneeId: assigneeId
+            taskNotes: notes,          // 생성은 기존대로 null 허용
+            assigneeId: assigneeId     // "" 가능
         };
         return await API.createTask(payload);
     }
@@ -1031,7 +1048,6 @@
     });
 
     window.closeModal = closeModal;
-
     boot();
 </script>
 </body>

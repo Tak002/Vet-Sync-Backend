@@ -10,16 +10,16 @@ import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.TaskRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TaskService {
+@Slf4j
+public class TaskCommandService {
     private final TaskRepository taskRepository;
     private final PatientService patientService;
     private final TaskDefinitionService taskDefinitionService;
@@ -56,8 +56,7 @@ public class TaskService {
 
     @Transactional
     public TaskInfoResponse changeStatus(UUID hospitalId, UUID taskId, TaskStatusChangeRequest req) {
-        Task task = taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
+        Task task = getTaskEntity(hospitalId, taskId);
 
         task.setStatus(req.status());
 
@@ -69,23 +68,40 @@ public class TaskService {
     @Transactional
     public TaskInfoResponse updateTask(UUID hospitalId, UUID taskId, TaskUpdateRequest req) {
         Task task = getTaskEntity(hospitalId, taskId);
-        staffService.validateStaffId(req.assigneeId(), hospitalId);
 
         // notes
+        // null 일경우 변경 x
         if (req.taskNotes() != null) {
             String notes = req.taskNotes().trim();
+            // 빈 문자열 일 경우 결과 해제
             task.setTaskNotes(notes.isBlank() ? null : notes);
         }
 
-        // result (status 전용에서도 다루지만, 일반 수정에서도 필요하면 허용)
+        // result
+        // null 일경우 변경 x
         if (req.result() != null) {
             String result = req.result().trim();
+            // 빈 문자열 일 경우 결과 해제
             task.setResult(result.isBlank() ? null : result);
         }
 
         // assignee
+        // null 일경우 변경 x
+        log.info("AssigneeId: {}", req.assigneeId());
         if (req.assigneeId() != null) {
-            task.setAssignee(entityManager.getReference(Staff.class, req.assigneeId()));
+            // 빈 문자열 일 경우 담당자 해제
+            if(req.assigneeId().isBlank()) {
+                task.setAssignee(null);
+                log.info("Assignee cleared");
+            }else{
+                // String 으로 온 값을 UUID로 변환
+                UUID assigneeId = UUID.fromString(req.assigneeId().trim());
+                // 유효한 직원인지 검증
+                staffService.validateStaffId(assigneeId, hospitalId);
+                log.info("Assignee set to: {}", assigneeId);
+
+                task.setAssignee(entityManager.getReference(Staff.class, assigneeId));
+            }
         }
 
         // PreUpdate 호출 위해 flush
@@ -94,32 +110,6 @@ public class TaskService {
         return TaskInfoResponse.from(task);
     }
 
-    @Transactional(readOnly = true)
-    public TaskInfoResponse getSingleTask(UUID hospitalId, UUID taskId) {
-        Task task = getTaskEntity(hospitalId, taskId);
-        return TaskInfoResponse.from(task);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TaskInfoResponse> getPatientTasks(UUID hospitalId, UUID patientId) {
-        patientService.validatePatientAccessible(hospitalId,patientId);
-
-        return taskRepository.findAllByHospital_IdAndPatient_Id(hospitalId, patientId)
-                .stream()
-                .map(TaskInfoResponse::from)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<TaskInfoResponse> getPatientDayTasks(UUID hospitalId, UUID patientId, LocalDate taskDate) {
-        patientService.validatePatientAccessible(hospitalId,patientId);
-
-        return taskRepository
-                .findAllByHospital_IdAndPatient_IdAndTaskDate(hospitalId, patientId, taskDate)
-                .stream()
-                .map(TaskInfoResponse::from)
-                .toList();
-    }
 
     private Task getTaskEntity(UUID hospitalId, UUID taskId){
         return taskRepository.findByIdAndHospital_Id(taskId, hospitalId)

@@ -3,7 +3,8 @@ package com.vetsync.backend.controller;
 import com.vetsync.backend.dto.task.*;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.global.annotation.StaffId;
-import com.vetsync.backend.service.TaskService;
+import com.vetsync.backend.service.TaskCommandService;
+import com.vetsync.backend.service.TaskQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TaskController {
 
-    private final TaskService taskService;
+    private final TaskCommandService taskCommandService;
+    private final TaskQueryService taskQueryService;
 
     @PostMapping
     @Operation(
@@ -40,7 +42,7 @@ public class TaskController {
             @Parameter(hidden = true) @StaffId UUID staffId,
             @Valid @RequestBody TaskCreateRequest req
     ) {
-        return ResponseEntity.ok(taskService.create(hospitalId, staffId, req));
+        return ResponseEntity.ok(taskCommandService.create(hospitalId, staffId, req));
     }
 
     @PatchMapping("/{taskId}/status")
@@ -60,7 +62,7 @@ public class TaskController {
             @PathVariable UUID taskId,
             @Valid @RequestBody TaskStatusChangeRequest req
     ) {
-        return ResponseEntity.ok(taskService.changeStatus(hospitalId, taskId, req));
+        return ResponseEntity.ok(taskCommandService.changeStatus(hospitalId, taskId, req));
     }
 
     @PatchMapping("/{taskId}")
@@ -77,7 +79,7 @@ public class TaskController {
             @PathVariable UUID taskId,
             @Valid @RequestBody TaskUpdateRequest req
     ) {
-        return ResponseEntity.ok(taskService.updateTask(hospitalId, taskId, req));
+        return ResponseEntity.ok(taskCommandService.updateTask(hospitalId, taskId, req));
     }
 
     @GetMapping("/{taskId}")
@@ -90,7 +92,7 @@ public class TaskController {
             )
             @PathVariable UUID taskId
     ) {
-        return ResponseEntity.ok(taskService.getSingleTask(hospitalId, taskId));
+        return ResponseEntity.ok(taskQueryService.getSingleTask(hospitalId, taskId));
     }
 
     @GetMapping("/patients/{patientId}")
@@ -103,7 +105,7 @@ public class TaskController {
             )
             @PathVariable UUID patientId
     ) {
-        return ResponseEntity.ok(taskService.getPatientTasks(hospitalId, patientId));
+        return ResponseEntity.ok(taskQueryService.getPatientTasks(hospitalId, patientId));
     }
 
     @GetMapping("/patients/{patientId}/days/{taskDate}")
@@ -121,6 +123,6 @@ public class TaskController {
             )
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate taskDate
     ) {
-        return ResponseEntity.ok(taskService.getPatientDayTasks(hospitalId, patientId, taskDate));
+        return ResponseEntity.ok(taskQueryService.getPatientDayTasks(hospitalId, patientId, taskDate));
     }
 }
