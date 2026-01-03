@@ -48,7 +48,16 @@ public record TaskInfoResponse(
         OffsetDateTime createdAt,
 
         @Schema(example = "2026-01-01T06:56:20.387760+00:00")
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+
+        @Schema(example = "2026-01-01T06:56:20.387760+00:00")
+        OffsetDateTime startedAt,
+
+        @Schema(example = "2026-01-01T06:56:20.387760+00:00")
+        OffsetDateTime confirmRequestedAt,
+
+        @Schema(example = "2026-01-01T06:56:20.387760+00:00")
+        OffsetDateTime completedAt
 ) {
     public static TaskInfoResponse from(Task e) {
         return new TaskInfoResponse(
@@ -64,7 +73,10 @@ public record TaskInfoResponse(
                 e.getAssignee() == null ? null : e.getAssignee().getId(),
                 e.getCreatedBy().getId(),
                 e.getCreatedAt(),
-                e.getUpdatedAt()
+                e.getUpdatedAt(),
+                e.getStartedAt(),
+                e.getConfirmRequestedAt(),
+                e.getCompletedAt()
         );
     }
 }

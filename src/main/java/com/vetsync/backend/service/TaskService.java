@@ -62,8 +62,8 @@ public class TaskService {
         if( req.result()!= null && !req.result().isBlank()){
             task.setResult(req.result());
         }
-
-        // save 호출 없어도 @Transactional이면 dirty checking으로 반영됨
+        // PreUpdate 호출 위해 flush
+        taskRepository.flush();
         return TaskInfoResponse.from(task);
     }
 
