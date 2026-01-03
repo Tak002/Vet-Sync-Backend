@@ -1,6 +1,5 @@
 package com.vetsync.backend.global.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vetsync.backend.global.ErrorResponse;
 import com.vetsync.backend.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
