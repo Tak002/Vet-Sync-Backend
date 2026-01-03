@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,10 +24,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwt;
     private final RequestMatcher skipMatcher;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public JwtAuthFilter(JwtTokenProvider jwt, RequestMatcher skipMatcher) {
+    public JwtAuthFilter(JwtTokenProvider jwt, RequestMatcher skipMatcher, AuthenticationEntryPoint authenticationEntryPoint) {
         this.jwt = jwt;
         this.skipMatcher = skipMatcher;
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Override
@@ -37,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
+//        log.info("JwtAuthFilter invoked for URI: {}", request.getRequestURI());
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -61,19 +64,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     List.of()
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
         }catch (ExpiredJwtException e){
             // ACCESS_TOKEN_EXPIRED
             request.setAttribute("auth_error", "ACCESS_TOKEN_EXPIRED");
             SecurityContextHolder.clearContext();
-            throw new org.springframework.security.core.AuthenticationException("expired") {};
-        }
-        catch (Exception e) {
+            authenticationEntryPoint.commence(
+                    request, response,
+                    new org.springframework.security.authentication.CredentialsExpiredException("ACCESS_TOKEN_EXPIRED", e)
+            );
+        } catch (Exception e) {
             // INVALID_TOKEN
             log.warn("JWT validation failed: {}", e.toString());
             request.setAttribute("auth_error", "INVALID_TOKEN");
             SecurityContextHolder.clearContext();
-            throw new org.springframework.security.core.AuthenticationException("invalidate_token") {};
+            authenticationEntryPoint.commence(
+                    request, response,
+                    new org.springframework.security.authentication.CredentialsExpiredException("INVALID_TOKEN", e)
+            );
         }
-        chain.doFilter(request, response);
+        return;
     }
 }
