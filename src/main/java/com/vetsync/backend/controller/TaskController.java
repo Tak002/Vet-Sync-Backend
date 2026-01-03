@@ -50,7 +50,7 @@ public class TaskController {
             summary = "업무 상태 변경",
             description = """
                     업무 상태를 변경합니다.
-                    - 상태는 반드시 PENDING -> IN_PROGRESS -> CONFIRM_WAITING -> COMPLETED 순서로만 변경되도록 서비스에서 검증해야 합니다.
+                    - 상태는 되도록 PENDING -> IN_PROGRESS -> CONFIRM_WAITING -> COMPLETED 순서로 변경됩니다. 그러나 강제 변경도 가능합니다.
                     """
     )
     public ResponseEntity<TaskInfoResponse> changeStatus(

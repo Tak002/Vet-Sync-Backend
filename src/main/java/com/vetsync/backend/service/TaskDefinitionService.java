@@ -33,7 +33,7 @@ public class TaskDefinitionService {
         if(!hospitalRepository.existsById(hospitalId)) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);
         }
-        return taskDefinitionRepository.findAllByHospitalId(hospitalId).stream()
+        return taskDefinitionRepository.findAllByHospital_Id(hospitalId).stream()
                 .map(TaskDefinitionResponse::from)
                 .toList();
     }

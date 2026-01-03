@@ -94,8 +94,13 @@ public class TaskCommandService {
                 task.setAssignee(null);
                 log.info("Assignee cleared");
             }else{
-                // String 으로 온 값을 UUID로 변환
-                UUID assigneeId = UUID.fromString(req.assigneeId().trim());
+                UUID assigneeId;
+                try{
+                    // String 으로 온 assigneeId 를 UUID 로 변환
+                    assigneeId = UUID.fromString(req.assigneeId().trim());
+                }catch (IllegalArgumentException  e) {
+                    throw new CustomException(ErrorCode.INVALID_STAFF_ID);
+                }
                 // 유효한 직원인지 검증
                 staffService.validateStaffId(assigneeId, hospitalId);
                 log.info("Assignee set to: {}", assigneeId);

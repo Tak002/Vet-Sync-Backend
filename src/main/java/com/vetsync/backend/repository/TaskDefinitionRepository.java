@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TaskDefinitionRepository  extends JpaRepository<TaskDefinition, UUID> {
-    List<TaskDefinition> findAllByHospitalId(UUID hospitalId);
+    List<TaskDefinition> findAllByHospital_Id(UUID hospitalId);
 
     Boolean existsByIdAndHospital_Id(UUID id, UUID hospitalId);
 }

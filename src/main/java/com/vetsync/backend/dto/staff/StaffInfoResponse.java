@@ -16,7 +16,7 @@ public record StaffInfoResponse(
         @Schema(description = "직원 이름", example = "홍길동")
         String name,
 
-        @Schema(description = "직원 권한/역할", example = "DOCTOR")
+        @Schema(description = "직원 권한/역할", example = "CHIEF_VET")
         StaffRole role,
 
         @Schema(description = "활성 여부", example = "true")
