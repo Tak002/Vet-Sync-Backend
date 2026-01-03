@@ -1,24 +1,28 @@
 package com.vetsync.backend.domain;
 
+import com.vetsync.backend.global.BaseTimeEntity;
 import com.vetsync.backend.global.enums.PatientGender;
 import com.vetsync.backend.global.enums.PatientSpecies;
 import com.vetsync.backend.global.enums.PatientStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "patients")
 @Getter @Setter
 @NoArgsConstructor
-public class Patient {
+@Builder
+@AllArgsConstructor
+@ToString(exclude = {"hospital", "owner","createdBy"})
+public class Patient extends BaseTimeEntity {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,28 +36,23 @@ public class Patient {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private PatientSpecies species;
 
     private String speciesDetail;
     private String breed;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private PatientGender gender;
 
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
-    private PatientStatus status;
+    @Builder.Default
+    private PatientStatus status = PatientStatus.REGISTERED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private Staff createdBy;
-
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
 }

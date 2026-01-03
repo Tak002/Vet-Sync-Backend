@@ -5,18 +5,21 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "medical_action_definitions")
+@Table(name = "task_definitions")
 @Getter
 @Setter
 @NoArgsConstructor
-public class MedicalActionDefinition {
+@ToString(exclude = {"hospital"})
+public class TaskDefinition {
 
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, length = 255)

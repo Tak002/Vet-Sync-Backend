@@ -56,18 +56,21 @@ CREATE TABLE hospitals (
 CREATE TABLE staffs (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
+    login_id text NOT NULL,
+    password text NOT NULL,
     name text NOT NULL,
     role staff_role NOT NULL,
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT uq_staff_login_per_hospital UNIQUE (hospital_id, login_id)
 );
 
 CREATE TABLE owners (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     name text NOT NULL,
-    phone text,
+    phone text NOT NULL,
     email text,
     address text,
     memo text,
@@ -92,7 +95,7 @@ CREATE TABLE patients (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE medical_action_definitions (
+CREATE TABLE task_definitions (
     id uuid PRIMARY KEY,
     name varchar(255) NOT NULL,
     is_global boolean NOT NULL,
@@ -105,8 +108,11 @@ CREATE TABLE tasks (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
-    medical_action_definition_id uuid NOT NULL,
-    description text,
+    task_definition_id uuid NOT NULL,
+    -- 업무 예정 일자 / 시간
+    task_date date NOT NULL,               -- YYYY-MM-DD
+    task_hour smallint NOT NULL,            -- 0 ~ 23
+    task_notes text,
     status task_status NOT NULL,
     result text,
     assignee_id uuid,
@@ -115,6 +121,16 @@ CREATE TABLE tasks (
     started_at timestamptz,
     confirm_requested_at timestamptz,
     completed_at timestamptz,
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE patient_day_notes (
+    id uuid PRIMARY KEY,
+    hospital_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    note_date date NOT NULL,
+    content jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -145,8 +161,8 @@ ALTER TABLE patients
     ADD CONSTRAINT fk_patients_created_by
         FOREIGN KEY (created_by) REFERENCES staffs (id);
 
-ALTER TABLE medical_action_definitions
-    ADD CONSTRAINT fk_med_actions_hospital
+ALTER TABLE task_definitions
+    ADD CONSTRAINT fk_task_definitions_hospital
         FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
 
 ALTER TABLE tasks
@@ -158,9 +174,9 @@ ALTER TABLE tasks
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
 ALTER TABLE tasks
-    ADD CONSTRAINT fk_tasks_med_action
-        FOREIGN KEY (medical_action_definition_id)
-            REFERENCES medical_action_definitions (id);
+    ADD CONSTRAINT fk_tasks_task_definition
+        FOREIGN KEY (task_definition_id)
+            REFERENCES task_definitions (id);
 
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_assignee
@@ -169,3 +185,21 @@ ALTER TABLE tasks
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_created_by
         FOREIGN KEY (created_by) REFERENCES staffs (id);
+
+ALTER TABLE patient_day_notes
+    ADD CONSTRAINT fk_patient_day_notes_hospital
+        FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
+
+ALTER TABLE patient_day_notes
+    ADD CONSTRAINT fk_patient_day_notes_patient
+        FOREIGN KEY (patient_id) REFERENCES patients (id);
+
+CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
+    ON owners (hospital_id, phone)
+    WHERE phone IS NOT NULL;
+
+CREATE UNIQUE INDEX uq_patient_day_notes_unique
+    ON patient_day_notes (hospital_id, patient_id, note_date);
+
+CREATE UNIQUE INDEX uq_patient_hospital_owner_name
+    ON patients (hospital_id, owner_id, name);
