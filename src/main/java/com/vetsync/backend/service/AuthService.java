@@ -13,6 +13,7 @@ import com.vetsync.backend.global.security.StaffPrincipal;
 import com.vetsync.backend.repository.HospitalRepository;
 import com.vetsync.backend.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,22 +30,26 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest req) {
-        StaffPrincipal principal = (StaffPrincipal) userDetailsService
-                .loadByHospitalAndLoginId(req.hospitalId(), req.loginId());
+       Staff staff;
+       try {
+           StaffPrincipal principal = (StaffPrincipal) userDetailsService
+                           .loadByHospitalAndLoginId(req.hospitalId(), req.loginId());
+           staff = principal.getStaff();
+       }
+       catch (UsernameNotFoundException e) {
+               throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+       }
 
-        Staff staff = principal.getStaff();
-
-        if (!passwordEncoder.matches(req.password(), staff.getPassword())) {
+       if (!passwordEncoder.matches(req.password(), staff.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
-        }
+       }
+       String token = jwtTokenProvider.createAccessToken(
+               staff.getId(),
+               staff.getHospital().getId(),
+               staff.getRole()
+       );
 
-        String token = jwtTokenProvider.createAccessToken(
-                staff.getId(),
-                staff.getHospital().getId(),
-                staff.getRole()
-        );
-
-        return new LoginResponse(token);
+       return new LoginResponse(token);
     }
 
     @Transactional
