@@ -100,7 +100,7 @@
             align-items:center;
             flex-wrap:wrap;
         }
-        input[type="text"], input[type="date"]{
+        input[type="text"], input[type="date"], input[type="password"]{
             width:100%;
             background: rgba(0,0,0,.22);
             border:1px solid rgba(255,255,255,.10);
@@ -109,7 +109,7 @@
             border-radius: 10px;
             outline:none;
         }
-        input[type="text"]:focus, input[type="date"]:focus{
+        input[type="text"]:focus, input[type="date"]:focus, input[type="password"]:focus{
             border-color: rgba(160,200,255,.45);
             box-shadow: 0 0 0 3px rgba(80,140,255,.18);
         }
@@ -373,6 +373,13 @@
 
             <div class="row">
                 <div style="flex:1">
+                    <div class="muted" style="margin:0 0 6px">JWT Token</div>
+                    <input id="jwtInput" type="password" placeholder="토큰만 붙여넣기 (Bearer 자동)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="flex:1">
                     <div class="muted" style="margin:0 0 6px">환자 ID</div>
                     <input id="patientIdInput" type="text" placeholder="e2da4625-7158-496f-9f84-9d26b7086ef2" />
                 </div>
@@ -391,7 +398,7 @@
             </div>
 
             <div class="muted">
-                경로: <code>/tasks/patients/{patientId}/management-charts/{date}</code>
+                경로: <code>/tasks/patients/{patientId}/days/{taskDate}</code>
             </div>
 
             <div class="legend">
@@ -433,38 +440,29 @@
     /***********************
      * CONFIG
      ***********************/
-        // API Base (필요하면 수정)
     const API_BASE = "";
 
-    // 시간 헤더 (AM/PM + 12/1..11 + 12/1..11) = 24칸
-    const HOURS = Array.from({length: 24}, (_, i) => i); // 0~23 내부키
-    // UI 표기: 0=12AM, 1=1AM ... 11=11AM, 12=12PM, 13=1PM ...
+    const HOURS = Array.from({length: 24}, (_, i) => i); // 0~23
     const hourLabel = (h) => {
-        const isPM = h >= 12;
         const v = h % 12 === 0 ? 12 : (h % 12);
         return String(v);
     };
     const hourPeriod = (h) => (h < 12 ? "AM" : "PM");
 
-    // 글로벌 정의는 항상 위에 배치 (name 기준 기본 정렬)
-    // 비글로벌 정의는 해당 날짜 tasks에 등장하면 아래쪽에 동적으로 추가
-
     /***********************
      * STATE
      ***********************/
     const state = {
+        jwtToken: "",
         patientId: null,
         date: null, // yyyy-mm-dd
-        patient: null, // PatientInfoResponse
-        defs: [], // all accessible task definitions
+        patient: null,
+        defs: [],
         defById: new Map(),
         globalDefs: [],
         nonGlobalDefs: [],
-        // row model: { type:'DEF'|'BLANK', defId?, blankIndex?, label, desc }
         rows: [],
-        // tasks for the date: keyed by (defId + '|' + hour)
         taskMap: new Map(),
-        // original tasks array for detail lookup
         tasks: [],
     };
 
@@ -506,44 +504,43 @@
         }
     }
 
-    function validateStatusTransition(current, next){
-        const order = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
-        const ci = order.indexOf(current);
-        const ni = order.indexOf(next);
-        if(ci === -1 || ni === -1) return false;
-        return ni === ci + 1; // 반드시 한 단계씩만
+    function readJwtFromInputAndPersist(){
+        const jwt = ($("#jwtInput").value ?? "").trim();
+        state.jwtToken = jwt;
+        localStorage.setItem("jwtToken", jwt);
     }
 
     async function apiFetch(path, opts={}){
         const headers = opts.headers ? {...opts.headers} : {};
         headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
-        // TODO: JWT 사용 시 여기에 Authorization 추가
-        // headers["Authorization"] = "Bearer ...";
+
+        // ✅ JWT 자동 헤더 주입
+        const token = (state.jwtToken ?? "").trim();
+        if(token){
+            headers["Authorization"] = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+        }
+
         const res = await fetch(API_BASE + path, {...opts, headers});
         if(!res.ok){
             let body = "";
             try { body = await res.text(); } catch {}
+            // 401은 토큰 문제일 확률이 높으니 메시지 개선
+            if(res.status === 401){
+                throw new Error(`HTTP 401 Unauthorized - JWT 토큰을 확인해줘. ${body}`.trim());
+            }
             throw new Error(`HTTP ${res.status} ${res.statusText} - ${body}`);
         }
-        // 204 대비
         const text = await res.text();
         return text ? JSON.parse(text) : null;
     }
 
     /***********************
-     * API CALLS (당신의 서버에 맞춤)
+     * API
      ***********************/
     const API = {
-        // GET /patients/{patientId}
         getPatient: (patientId) => apiFetch(`/patients/${patientId}`, { method:"GET" }),
-
-        // GET /task-definitions
         getTaskDefinitions: () => apiFetch(`/task-definitions`, { method:"GET" }),
-
-        // GET /patients/{patientId}/days/{taskDate}
         getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/days/${taskDate}`, { method:"GET" }),
-
-        // POST /tasks
         createTask: (payload) => apiFetch(`/tasks`, { method:"POST", body: JSON.stringify(payload) }),
     };
 
@@ -580,9 +577,6 @@
      * BUILD ROWS
      ***********************/
     function buildRows(){
-        // 1) 글로벌 정의: 항상 표시
-        // 2) 비글로벌 정의: 해당 날짜 task에 존재하는 defId만 표시
-        // 3) 공백 row: 4줄 제공 (요구사항)
         const globalRows = state.globalDefs
             .slice()
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
@@ -619,9 +613,6 @@
         state.rows = [...globalRows, ...nonGlobalRows, ...blankRows];
     }
 
-    /***********************
-     * BUILD TASK MAP
-     ***********************/
     function buildTaskMap(){
         state.taskMap.clear();
         for(const t of state.tasks){
@@ -640,10 +631,7 @@
             return;
         }
 
-        // THEAD
-        // Row 1: Date | 처치시간 | AM span 12 | PM span 12 | Order & Results
-        // Row 2: (blank) | 12 1..11 12 1..11 | (blank)
-        const th1 = `
+        const thead = `
       <thead>
         <tr>
           <th>Date</th>
@@ -663,7 +651,6 @@
       </thead>
     `;
 
-        // TBODY
         const rowsHtml = state.rows.map((r, rowIdx)=>{
             const left = r.type==="DEF"
                 ? (() => {
@@ -688,43 +675,32 @@
             </td>
           `;
 
-            // "처치시간" 열: 여기서는 "-" 표시(샘플표처럼). 필요하면 요일/기타로 변경 가능
-            const timeCol = `<td>${r.type==="DEF" ? "-" : "-"}</td>`;
+            const timeCol = `<td>-</td>`;
 
             const hourCells = HOURS.map(h=>{
-                // DEF row일 때만 task 매핑
                 let task = null;
                 if(r.type==="DEF"){
                     task = state.taskMap.get(`${r.defId}|${h}`) ?? null;
                 }
 
-                // cell style
                 const cls = task ? statusToClass(task.status) : "empty";
                 const labelTop = task?.result ? escapeHtml(task.result) : "—";
-                const small = task ? `<span class="sub">${escapeHtml(task.status)}</span>` : `<span class="sub">${hourPeriod(h)} ${hourLabel(h)}</span>`;
-
-                // 클릭 데이터
-                const data = {
-                    rowType: r.type,
-                    defId: r.type==="DEF" ? r.defId : "",
-                    blankIndex: r.type==="BLANK" ? r.blankIndex : "",
-                    hour: h,
-                };
+                const small = task
+                    ? `<span class="sub">${escapeHtml(task.status)}</span>`
+                    : `<span class="sub">${hourPeriod(h)} ${hourLabel(h)}</span>`;
 
                 return `
           <td class="cell ${cls}"
-              data-row-type="${data.rowType}"
-              data-def-id="${data.defId}"
-              data-blank-index="${data.blankIndex}"
-              data-hour="${data.hour}">
+              data-row-type="${r.type}"
+              data-def-id="${r.type==="DEF" ? r.defId : ""}"
+              data-blank-index="${r.type==="BLANK" ? r.blankIndex : ""}"
+              data-hour="${h}">
             <span class="result">${labelTop}</span>
             ${small}
           </td>
         `;
             }).join("");
 
-            // "Order & Results" 컬럼: 행 설명/요약을 표시(요구사항 상 표 모양 유지)
-            // DEF면 valueType 표시, BLANK면 안내
             const right = (() => {
                 if(r.type==="DEF"){
                     const def = state.defById.get(r.defId);
@@ -738,7 +714,7 @@
             return `<tr data-row-index="${rowIdx}">${left}${timeCol}${hourCells}${right}</tr>`;
         }).join("");
 
-        table.innerHTML = th1 + `<tbody>${rowsHtml}</tbody>`;
+        table.innerHTML = thead + `<tbody>${rowsHtml}</tbody>`;
     }
 
     /***********************
@@ -792,14 +768,11 @@
         ※ 상태 변경은 별도 API(예: PATCH /tasks/{id}/status 등)로 붙이면 여기서도 제어 가능.
       </div>
     `;
-        const footer = `
-      <button class="btn-ghost" onclick="closeModal()">닫기</button>
-    `;
+        const footer = `<button class="btn-ghost" onclick="closeModal()">닫기</button>`;
         openModal("업무 상세", body, footer);
     }
 
     function renderBlankRowPicker(hour){
-        // 이미 표에 들어간 DEF(글로벌 + 현재 표시된 비글로벌) 제외하고 추가 가능한 DEF만 보여주기
         const existingDefIds = new Set(state.rows.filter(r=>r.type==="DEF").map(r=>r.defId));
         const available = state.defs
             .filter(d => !existingDefIds.has(d.id))
@@ -841,7 +814,6 @@
             const notes = $("#pickNotes").value || null;
             try{
                 await createTask(defId, hour, notes);
-                // 새 defId가 등장했으니 rows 재구성 후 렌더
                 await reloadAll(false);
                 closeModal();
                 toast("추가 및 생성 완료");
@@ -896,28 +868,24 @@
         state.patientId = patientId;
         state.date = date;
 
-        // 1) patient
         state.patient = await API.getPatient(patientId);
 
-        // 2) defs
         state.defs = await API.getTaskDefinitions();
         state.defById = new Map(state.defs.map(d => [d.id, d]));
         state.globalDefs = state.defs.filter(d => d.global);
         state.nonGlobalDefs = state.defs.filter(d => !d.global);
 
-        // 3) tasks (for date)
         state.tasks = await API.getPatientDayTasks(patientId, date);
 
         buildTaskMap();
         buildRows();
-
         renderPatient();
         renderTable();
     }
 
     async function reloadAll(showToast=true){
         if(!state.patientId || !state.date) return;
-        // patient는 큰 변화 없으니 defs+tasks만 새로고침해도 되지만 여기선 안전하게:
+
         try{
             if(showToast) toast("새로고침 중...");
             state.patient = await API.getPatient(state.patientId);
@@ -961,15 +929,10 @@
         const hour = Number(td.dataset.hour);
 
         if(rowType === "DEF"){
-            // DEF row: task exists? then show detail, else create
             const t = state.taskMap.get(`${defId}|${hour}`) ?? null;
-            if(t){
-                renderTaskDetail(t);
-            }else{
-                renderCreateTaskModal(defId, hour);
-            }
+            if(t) renderTaskDetail(t);
+            else renderCreateTaskModal(defId, hour);
         }else{
-            // BLANK row: show definition picker (exclude already in table)
             renderBlankRowPicker(hour);
         }
     });
@@ -978,15 +941,14 @@
      * BOOTSTRAP
      ***********************/
     function setInputsFromState(){
+        $("#jwtInput").value = state.jwtToken ?? "";
         $("#patientIdInput").value = state.patientId ?? "";
         $("#dateInput").value = state.date ?? "";
     }
 
     async function boot(){
-        // URL에서 pid/date 먼저
         const { pid, date } = getPathParamsFromUrl();
 
-        // 기본값 (샘플 더미)
         const defaultPid = "e2da4625-7158-496f-9f84-9d26b7086ef2";
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -994,6 +956,7 @@
         const dd = String(today.getDate()).padStart(2,"0");
         const defaultDate = `${yyyy}-${mm}-${dd}`;
 
+        state.jwtToken = localStorage.getItem("jwtToken") || "";
         state.patientId = pid || defaultPid;
         state.date = date || defaultDate;
 
@@ -1008,12 +971,15 @@
     }
 
     $("#btnLoad").addEventListener("click", async ()=>{
+        readJwtFromInputAndPersist();
+
         const pid = $("#patientIdInput").value.trim();
         const date = $("#dateInput").value;
+
         if(!pid){ toast("patientId를 입력해줘"); return; }
         if(!date){ toast("date를 선택해줘"); return; }
 
-        // 주소도 목적대로 변경 (원하면)
+        // 주소 표기는 기존 유지(원하면 바꿔도 됨)
         const newUrl = `/patients/${pid}/management-charts/${date}`;
         history.pushState({}, "", newUrl);
 
@@ -1025,7 +991,10 @@
         }
     });
 
-    $("#btnReload").addEventListener("click", ()=> reloadAll(true));
+    $("#btnReload").addEventListener("click", ()=>{
+        readJwtFromInputAndPersist();
+        reloadAll(true);
+    });
 
     window.closeModal = closeModal;
 
