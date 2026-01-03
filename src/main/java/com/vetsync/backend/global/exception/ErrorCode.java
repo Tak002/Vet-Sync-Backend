@@ -38,7 +38,12 @@ public enum ErrorCode {
 
     // Task
     TASK_DEFINITION_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "요청하신 업무 정의를 찾을 수 없습니다."),
-    TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "T002", "요청하신 업무를 찾을 수 없습니다.");
+    TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "T002", "요청하신 업무를 찾을 수 없습니다."),
+
+    // Staff
+    INVALID_STAFF_ID(HttpStatus.BAD_REQUEST, "S001","올바르지 않은 직원 ID 입니다" );
+
+
     private final HttpStatus status;
     private final String code;
     private final String message;

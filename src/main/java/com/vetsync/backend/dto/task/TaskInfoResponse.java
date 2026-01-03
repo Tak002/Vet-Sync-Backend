@@ -14,9 +14,6 @@ public record TaskInfoResponse(
         @Schema(example = "b9f5f9a1-3a3e-4a54-9cb2-41f04b9a2d11")
         UUID id,
 
-        @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
-        UUID hospitalId,
-
         @Schema(example = "e2da4625-7158-496f-9f84-9d26b7086ef2")
         UUID patientId,
 
@@ -62,7 +59,6 @@ public record TaskInfoResponse(
     public static TaskInfoResponse from(Task e) {
         return new TaskInfoResponse(
                 e.getId(),
-                e.getHospital().getId(),
                 e.getPatient().getId(),
                 e.getTaskDefinition().getId(),
                 e.getTaskDate(),

@@ -1,8 +1,6 @@
 package com.vetsync.backend.controller;
 
-import com.vetsync.backend.dto.task.TaskCreateRequest;
-import com.vetsync.backend.dto.task.TaskInfoResponse;
-import com.vetsync.backend.dto.task.TaskStatusChangeRequest;
+import com.vetsync.backend.dto.task.*;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.global.annotation.StaffId;
 import com.vetsync.backend.service.TaskService;
@@ -49,12 +47,12 @@ public class TaskController {
     @Operation(
             summary = "업무 상태 변경",
             description = """
-                    업무 상태를 변경합니다. (요청에 result 포함)
+                    업무 상태를 변경합니다.
                     - 상태는 반드시 PENDING -> IN_PROGRESS -> CONFIRM_WAITING -> COMPLETED 순서로만 변경되도록 서비스에서 검증해야 합니다.
                     """
     )
     public ResponseEntity<TaskInfoResponse> changeStatus(
-            @Parameter(hidden = true) @HospitalId UUID hospitalId,
+            @HospitalId UUID hospitalId,
             @Parameter(
                     description = "업무 ID",
                     example = "b9f5f9a1-3a3e-4a54-9cb2-41f04b9a2d11"
@@ -63,6 +61,23 @@ public class TaskController {
             @Valid @RequestBody TaskStatusChangeRequest req
     ) {
         return ResponseEntity.ok(taskService.changeStatus(hospitalId, taskId, req));
+    }
+
+    @PatchMapping("/{taskId}")
+    @Operation(
+            summary = "업무 정보 변경 (status 제외)",
+            description = "업무의 노트, 결과, 담당자를 변경합니다."
+    )
+    public ResponseEntity<TaskInfoResponse> changeStaff(
+            @HospitalId UUID hospitalId,
+            @Parameter(
+                    description = "업무 ID",
+                    example = "b9f5f9a1-3a3e-4a54-9cb2-41f04b9a2d11"
+            )
+            @PathVariable UUID taskId,
+            @Valid @RequestBody TaskUpdateRequest req
+    ) {
+        return ResponseEntity.ok(taskService.updateTask(hospitalId, taskId, req));
     }
 
     @GetMapping("/{taskId}")

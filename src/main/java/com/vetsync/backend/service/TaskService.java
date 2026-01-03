@@ -4,6 +4,7 @@ import com.vetsync.backend.domain.*;
 import com.vetsync.backend.dto.task.TaskCreateRequest;
 import com.vetsync.backend.dto.task.TaskInfoResponse;
 import com.vetsync.backend.dto.task.TaskStatusChangeRequest;
+import com.vetsync.backend.dto.task.TaskUpdateRequest;
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.TaskRepository;
@@ -23,6 +24,7 @@ public class TaskService {
     private final PatientService patientService;
     private final TaskDefinitionService taskDefinitionService;
     private final EntityManager entityManager;
+    private final StaffService staffService;
 
     // Create Task
     @Transactional
@@ -55,22 +57,46 @@ public class TaskService {
     @Transactional
     public TaskInfoResponse changeStatus(UUID hospitalId, UUID taskId, TaskStatusChangeRequest req) {
         Task task = taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND)); // or TASK_NOT_FOUND
+                .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
 
         task.setStatus(req.status());
 
-        if( req.result()!= null && !req.result().isBlank()){
-            task.setResult(req.result());
-        }
         // PreUpdate 호출 위해 flush
         taskRepository.flush();
         return TaskInfoResponse.from(task);
     }
 
+    @Transactional
+    public TaskInfoResponse updateTask(UUID hospitalId, UUID taskId, TaskUpdateRequest req) {
+        Task task = getTaskEntity(hospitalId, taskId);
+        staffService.validateStaffId(req.assigneeId(), hospitalId);
+
+        // notes
+        if (req.taskNotes() != null) {
+            String notes = req.taskNotes().trim();
+            task.setTaskNotes(notes.isBlank() ? null : notes);
+        }
+
+        // result (status 전용에서도 다루지만, 일반 수정에서도 필요하면 허용)
+        if (req.result() != null) {
+            String result = req.result().trim();
+            task.setResult(result.isBlank() ? null : result);
+        }
+
+        // assignee
+        if (req.assigneeId() != null) {
+            task.setAssignee(entityManager.getReference(Staff.class, req.assigneeId()));
+        }
+
+        // PreUpdate 호출 위해 flush
+        taskRepository.flush();
+
+        return TaskInfoResponse.from(task);
+    }
+
     @Transactional(readOnly = true)
     public TaskInfoResponse getSingleTask(UUID hospitalId, UUID taskId) {
-        Task task = taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND)); // or TASK_NOT_FOUND
+        Task task = getTaskEntity(hospitalId, taskId);
         return TaskInfoResponse.from(task);
     }
 
@@ -93,5 +119,10 @@ public class TaskService {
                 .stream()
                 .map(TaskInfoResponse::from)
                 .toList();
+    }
+
+    private Task getTaskEntity(UUID hospitalId, UUID taskId){
+        return taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
     }
 }
