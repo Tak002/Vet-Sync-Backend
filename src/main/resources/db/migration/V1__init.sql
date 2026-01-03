@@ -70,7 +70,7 @@ CREATE TABLE owners (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     name text NOT NULL,
-    phone text,
+    phone text NOT NULL,
     email text,
     address text,
     memo text,

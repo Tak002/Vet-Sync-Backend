@@ -29,7 +29,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A004", "인증 정보가 올바르지 않습니다. 다시 로그인해 주세요."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A005", "로그인 세션이 만료되었습니다. 다시 로그인해 주세요."),
     SMS_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "A006", "인증번호가 올바르지 않거나 만료되었습니다. 다시 확인해 주세요."),
-
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A007", "로그인 정보가 올바르지 않습니다. 다시 확인해 주세요."),
     // Owner
     OWNER_ALREADY_EXISTS(HttpStatus.CONFLICT, "O001", "이미 등록된 보호자입니다."),
 

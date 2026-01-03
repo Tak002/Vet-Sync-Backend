@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 
@@ -25,12 +24,11 @@ public class JwtTokenProvider {
             throw new IllegalArgumentException("Access token minutes must be positive");
         }
 
-        byte[] rawBytes = secret.getBytes(StandardCharsets.UTF_8);
-        byte[] keyBytes = Base64.getEncoder().encode(rawBytes);
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
 
         if (keyBytes.length < 32) {
             throw new IllegalArgumentException(
-                    "JWT secret is too weak. Provide a longer secret (at least 32 bytes after Base64 encoding)"
+                    "JWT secret is too weak. Provide a longer secret (at least 32 bytes)"
             );
         }
 

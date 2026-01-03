@@ -12,13 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
-    boolean existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHour(UUID hospitalId, UUID patientId, LocalDate taskDate, Integer taskHour);
-
     Optional<Task> findByIdAndHospital_Id(UUID taskId, UUID hospitalId);
 
     List<Task> findAllByHospital_IdAndPatient_IdAndTaskDate(UUID hospitalId, UUID patientId, LocalDate taskDate);
 
     List<Task> findAllByHospital_IdAndPatient_Id(UUID hospitalId, UUID patientId);
 
-    boolean existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(UUID hospitalId, @NotNull UUID uuid, @NotNull LocalDate localDate, @NotNull @Min(0) @Max(23) Integer integer, @NotNull UUID TaskDefinitionId);
+    boolean existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(UUID hospitalId, @NotNull UUID patientId, @NotNull LocalDate taskDate, @NotNull @Min(0) @Max(23) Integer taskHour, @NotNull UUID taskDefinitionId);
 }

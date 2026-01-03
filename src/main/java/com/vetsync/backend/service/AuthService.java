@@ -35,7 +35,7 @@ public class AuthService {
         Staff staff = principal.getStaff();
 
         if (!passwordEncoder.matches(req.password(), staff.getPassword())) {
-            throw new IllegalArgumentException("invalid credentials");
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         String token = jwtTokenProvider.createAccessToken(

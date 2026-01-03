@@ -57,11 +57,10 @@ public class TaskService {
         Task task = taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND)); // or TASK_NOT_FOUND
 
+        task.setStatus(req.status());
 
-        // result 반영 (요구사항: 상태변화 요청에 포함)
-        task.setResult(req.result());
         if( req.result()!= null && !req.result().isBlank()){
-            task.setStatus(req.status());
+            task.setResult(req.result());
         }
 
         // save 호출 없어도 @Transactional이면 dirty checking으로 반영됨
