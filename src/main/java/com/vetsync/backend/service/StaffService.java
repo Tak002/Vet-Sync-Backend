@@ -2,10 +2,9 @@ package com.vetsync.backend.service;
 
 import com.vetsync.backend.dto.staff.StaffInfoResponse;
 import com.vetsync.backend.global.exception.CustomException;
-import com.vetsync.backend.repository.StaffRepository;
 import com.vetsync.backend.global.exception.ErrorCode;
+import com.vetsync.backend.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +17,7 @@ public class StaffService {
     private final StaffRepository staffRepository;
 
     @Transactional(readOnly = true)
-    public @Nullable List<StaffInfoResponse> findAllByHospitalId(UUID hospitalId) {
+    public List<StaffInfoResponse> findAllByHospitalId(UUID hospitalId) {
         return staffRepository.findAllByHospital_Id(hospitalId).stream()
                 .map(StaffInfoResponse::from)
                 .toList();
