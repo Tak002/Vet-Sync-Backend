@@ -4,6 +4,7 @@ import com.vetsync.backend.dto.task.*;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.global.annotation.StaffId;
 import com.vetsync.backend.service.TaskCommandService;
+import com.vetsync.backend.service.TaskAndDefinitionNoteCreationFacade;
 import com.vetsync.backend.service.TaskQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +27,7 @@ public class TaskController {
 
     private final TaskCommandService taskCommandService;
     private final TaskQueryService taskQueryService;
+    private final TaskAndDefinitionNoteCreationFacade taskDayDefinitionFacade;
 
     @PostMapping
     @Operation(
@@ -42,7 +44,7 @@ public class TaskController {
             @Parameter(hidden = true) @StaffId UUID staffId,
             @Valid @RequestBody TaskCreateRequest req
     ) {
-        return ResponseEntity.ok(taskCommandService.create(hospitalId, staffId, req));
+        return ResponseEntity.ok(taskDayDefinitionFacade.createTask(hospitalId, staffId, req));
     }
 
     @PatchMapping("/{taskId}/status")
@@ -108,7 +110,7 @@ public class TaskController {
         return ResponseEntity.ok(taskQueryService.getPatientTasks(hospitalId, patientId));
     }
 
-    @GetMapping("/patients/{patientId}/days/{taskDate}")
+    @GetMapping("/patients/{patientId}/{taskDate}")
     @Operation(summary = "환자 특정 날짜 업무 조회", description = "해당 환자의 특정 날짜(taskDate)의 업무를 조회합니다.")
     public ResponseEntity<List<TaskInfoResponse>> getPatientDayTasks(
             @Parameter(hidden = true) @HospitalId UUID hospitalId,

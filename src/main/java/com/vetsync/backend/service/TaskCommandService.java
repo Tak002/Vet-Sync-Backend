@@ -12,8 +12,10 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -28,7 +30,7 @@ public class TaskCommandService {
 
     // Create Task
     @Transactional
-    public TaskInfoResponse create(UUID hospitalId, UUID staffId, TaskCreateRequest req) {
+    Task createInternal(UUID hospitalId, UUID staffId, TaskCreateRequest req) {
         // 병원에 존재하지 않는 환자
         patientService.validatePatientAccessible(hospitalId, req.patientId());
         // 병원에 존재하지 않는 업무 정의
@@ -50,8 +52,7 @@ public class TaskCommandService {
                 .assignee(req.assigneeId() == null ? null : entityManager.getReference(Staff.class, req.assigneeId()))
                 .build();
 
-        Task saved = taskRepository.save(task);
-        return TaskInfoResponse.from(saved);
+        return taskRepository.save(task);
     }
 
     @Transactional
@@ -120,4 +121,14 @@ public class TaskCommandService {
         return taskRepository.findByIdAndHospital_Id(taskId, hospitalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
     }
+
+    @Transactional(propagation = Propagation.MANDATORY) // 트랜잭션이 이미 존재해야 함, PatientDayTaskDefinitionNoteService 에서 사용
+    public void linkTasksToDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate,
+                                          UUID taskDefinitionId, PatientDayTaskDefinitionNote note) {
+        // 해당하는 task들을 찾아서 patientDayTaskDefinitionNote 설정
+        taskRepository.findByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(
+                hospitalId, patientId, taskDate, taskDefinitionId
+        ).forEach(task -> task.setPatientDayTaskDefinitionNote(note));
+    }
+
 }

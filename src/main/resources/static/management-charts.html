@@ -264,7 +264,7 @@
             </div>
 
             <div class="muted">
-                경로: <code>/tasks/patients/{patientId}/days/{taskDate}</code>
+                경로: <code>/tasks/patients/{patientId}/{taskDate}</code>
             </div>
 
             <div class="legend">
@@ -469,7 +469,7 @@
     const API = {
         getPatient: (patientId) => apiFetch(`/patients/${patientId}`, { method:"GET" }),
         getTaskDefinitions: () => apiFetch(`/task-definitions`, { method:"GET" }),
-        getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/days/${taskDate}`, { method:"GET" }),
+        getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/${taskDate}`, { method:"GET" }),
         createTask: (payload) => apiFetch(`/tasks`, { method:"POST", body: JSON.stringify(payload) }),
 
         getStaffs: () => apiFetch(`/staffs`, { method:"GET" }),

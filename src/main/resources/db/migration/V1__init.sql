@@ -1,18 +1,9 @@
--- =========================
+-- =========================================================
 -- ENUM TYPES
--- =========================
-CREATE TYPE patient_species AS ENUM (
-    'DOG',
-    'CAT',
-    'OTHER'
-    );
+-- =========================================================
+CREATE TYPE patient_species AS ENUM ('DOG','CAT','OTHER');
 
-CREATE TYPE task_status AS ENUM (
-    'PENDING',
-    'IN_PROGRESS',
-    'CONFIRM_WAITING',
-    'COMPLETED'
-    );
+CREATE TYPE task_status AS ENUM ('PENDING','IN_PROGRESS','CONFIRM_WAITING','COMPLETED');
 
 CREATE TYPE patient_gender AS ENUM (
     'M',
@@ -21,31 +12,15 @@ CREATE TYPE patient_gender AS ENUM (
     'SF'   -- 중성화 암컷
     );
 
-CREATE TYPE patient_status AS ENUM (
-    'REGISTERED',
-    'ADMITTED',
-    'HOSPITALIZED',
-    'DISCHARGED'
-    );
+CREATE TYPE patient_status AS ENUM ('REGISTERED','ADMITTED','HOSPITALIZED','DISCHARGED');
 
-CREATE TYPE staff_role AS ENUM (
-    'CHIEF_VET',
-    'VET',
-    'SENIOR_TECH',
-    'TECH',
-    'FRONT'
-    );
+CREATE TYPE staff_role AS ENUM ('CHIEF_VET','VET','SENIOR_TECH','TECH','FRONT');
 
-CREATE TYPE medical_value_type AS ENUM (
-    'INTEGER',
-    'FLOAT',
-    'STAFF_ID',
-    'RESPIRATORY_RATE'
-    );
+CREATE TYPE medical_value_type AS ENUM ('INTEGER','FLOAT','STAFF_ID','RESPIRATORY_RATE');
 
--- =========================
+-- =========================================================
 -- TABLES
--- =========================
+-- =========================================================
 CREATE TABLE hospitals (
     id uuid PRIMARY KEY,
     name text NOT NULL,
@@ -103,15 +78,34 @@ CREATE TABLE task_definitions (
     description text
 );
 
+-- 공용 노트 테이블: 환자/일자/TaskDefinition 단위
+CREATE TABLE patient_day_task_definition_notes (
+    id uuid PRIMARY KEY,
+    hospital_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    task_date date NOT NULL,
+    task_definition_id uuid NOT NULL,
+    note text NOT NULL DEFAULT '',
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE tasks (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
     task_definition_id uuid NOT NULL,
+
     -- 업무 예정 일자 / 시간
     task_date date NOT NULL,               -- YYYY-MM-DD
     task_hour smallint NOT NULL,            -- 0 ~ 23
+
+    -- 공용 노트 참조
+   patient_day_task_definition_note_id uuid,
+
+    -- 개별 task 전용 메모
     task_notes text,
+
     status task_status NOT NULL,
     result text,
     assignee_id uuid,
@@ -164,6 +158,18 @@ ALTER TABLE task_definitions
     ADD CONSTRAINT fk_task_definitions_hospital
         FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
 
+ALTER TABLE patient_day_task_definition_notes
+    ADD CONSTRAINT fk_pdtddn_hospital
+        FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
+
+ALTER TABLE patient_day_task_definition_notes
+    ADD CONSTRAINT fk_pdtddn_patient
+        FOREIGN KEY (patient_id) REFERENCES patients (id);
+
+ALTER TABLE patient_day_task_definition_notes
+    ADD CONSTRAINT fk_pdtddn_task_definition
+        FOREIGN KEY (task_definition_id) REFERENCES task_definitions (id);
+
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_hospital
         FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
@@ -176,6 +182,11 @@ ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_task_definition
         FOREIGN KEY (task_definition_id)
             REFERENCES task_definitions (id);
+
+ALTER TABLE tasks
+    ADD CONSTRAINT fk_tasks_pdtddn
+        FOREIGN KEY (patient_day_task_definition_note_id)
+            REFERENCES patient_day_task_definition_notes (id);
 
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_assignee
@@ -193,6 +204,9 @@ ALTER TABLE patient_day_notes
     ADD CONSTRAINT fk_patient_day_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
+-- =========================================================
+-- INDEXES / UNIQUE
+-- =========================================================
 CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
     ON owners (hospital_id, phone)
     WHERE phone IS NOT NULL;
@@ -202,3 +216,15 @@ CREATE UNIQUE INDEX uq_patient_day_notes_unique
 
 CREATE UNIQUE INDEX uq_patient_hospital_owner_name
     ON patients (hospital_id, owner_id, name);
+
+-- 공용 노트 동일성 보장 (환자/일자/TaskDefinition 당 1개)
+CREATE UNIQUE INDEX uq_pdtddn_unique
+    ON patient_day_task_definition_notes (hospital_id, patient_id, task_date, task_definition_id);
+
+-- "그날 환자의 공용 노트 전체" 조회 최적화
+CREATE INDEX ix_pdtddn_day_lookup
+    ON patient_day_task_definition_notes (hospital_id, patient_id, task_date);
+
+-- tasks에서 note FK 조인 최적화
+CREATE INDEX ix_tasks_pdtddn_id
+    ON tasks (patient_day_task_definition_note_id);

@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"hospital", "patient", "taskDefinition", "assignee", "createdBy"})
+@ToString(exclude = {"hospital", "patient", "taskDefinition", "patientDayTaskDefinitionNote","assignee", "createdBy"})
 public class Task extends BaseTimeEntity {
 
     @Id
@@ -57,6 +57,10 @@ public class Task extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
     private Staff assignee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_day_task_definition_note_id")
+    private PatientDayTaskDefinitionNote patientDayTaskDefinitionNote;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
