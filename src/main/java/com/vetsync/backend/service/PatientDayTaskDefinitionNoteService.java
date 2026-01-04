@@ -47,8 +47,19 @@ public class PatientDayTaskDefinitionNoteService {
 
     // definition note 생성 및 관련 task들과 연결
     @Transactional
-    PatientDayTaskDefinitionNote createDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, PatientDayTaskDefinitionNoteCreateRequest request) {
+    PatientDayTaskDefinitionNoteInfoResponse createDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, PatientDayTaskDefinitionNoteCreateRequest request) {
         patientService.validatePatientAccessible(hospitalId, patientId);
+        PatientDayTaskDefinitionNote already = patientDayTaskDefinitionNoteRepository.getByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(hospitalId, patientId, taskDate, request.taskDefinitionId());
+        // 이미 note가 존재하고, note 내용이 비어있지 않은 경우에는 중복 생성 불가
+        if(already != null){
+            if(!already.getNote().isBlank()){
+                throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);
+            }
+            // 이미 note가 존재하지만, note 내용이 비어있는 경우에는 update로 처리
+            return updateDefinitionNote(hospitalId, patientId, taskDate, already.getId(),
+                    new PatientDayTaskDefinitionNoteUpdateRequest(request.note())
+            );
+        }
 
         PatientDayTaskDefinitionNote note = PatientDayTaskDefinitionNote.builder()
                 .hospital(entityManager.getReference(Hospital.class, hospitalId))
@@ -57,7 +68,7 @@ public class PatientDayTaskDefinitionNoteService {
                 .taskDefinition(entityManager.getReference(TaskDefinition.class, request.taskDefinitionId()))
                 .note(request.note())
                 .build();
-        return patientDayTaskDefinitionNoteRepository.save(note);
+        return PatientDayTaskDefinitionNoteInfoResponse.from(patientDayTaskDefinitionNoteRepository.save(note));
     }
 
     // definition note 수정
@@ -72,7 +83,7 @@ public class PatientDayTaskDefinitionNoteService {
         PatientDayTaskDefinitionNote note = patientDayTaskDefinitionNoteRepository.findByIdAndHospital_IdAndPatient_IdAndTaskDate(noteId, hospitalId, patientId, taskDate)
                 .orElseThrow(()-> new CustomException(ErrorCode.TASK_DEFINITION_NOTE_NOT_FOUND));
         if (request.note() != null) {
-            note.setNote(request.note());
+            note.setNote(request.note().trim());
         }
         return PatientDayTaskDefinitionNoteInfoResponse.from(note);
     }

@@ -124,11 +124,11 @@ public class TaskCommandService {
 
     @Transactional(propagation = Propagation.MANDATORY) // 트랜잭션이 이미 존재해야 함, PatientDayTaskDefinitionNoteService 에서 사용
     public void linkTasksToDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate,
-                                          UUID taskDefinitionId, PatientDayTaskDefinitionNote note) {
+                                          UUID taskDefinitionId, UUID noteId) {
         // 해당하는 task들을 찾아서 patientDayTaskDefinitionNote 설정
         taskRepository.findByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(
                 hospitalId, patientId, taskDate, taskDefinitionId
-        ).forEach(task -> task.setPatientDayTaskDefinitionNote(note));
+        ).forEach(task -> task.setPatientDayTaskDefinitionNote(entityManager.getReference(PatientDayTaskDefinitionNote.class,noteId)));
     }
 
 }

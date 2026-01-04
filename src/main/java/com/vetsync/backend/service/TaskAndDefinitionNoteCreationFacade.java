@@ -48,8 +48,9 @@ public class TaskAndDefinitionNoteCreationFacade {
 
     @Transactional
     public PatientDayTaskDefinitionNoteInfoResponse createPatientDayTaskDefinition(UUID hospitalId, UUID patientId, LocalDate taskDate, PatientDayTaskDefinitionNoteCreateRequest request){
-        PatientDayTaskDefinitionNote note = noteService.createDefinitionNote(hospitalId, patientId, taskDate, request);
-        taskCommandService.linkTasksToDefinitionNote(hospitalId, patientId, taskDate, request.taskDefinitionId(), note);
-        return PatientDayTaskDefinitionNoteInfoResponse.from(note);
+        PatientDayTaskDefinitionNoteInfoResponse note = noteService.createDefinitionNote(hospitalId, patientId, taskDate, request);
+        UUID noteId = note.id();
+        taskCommandService.linkTasksToDefinitionNote(hospitalId, patientId, taskDate, request.taskDefinitionId(), noteId);
+        return note;
     }
 }

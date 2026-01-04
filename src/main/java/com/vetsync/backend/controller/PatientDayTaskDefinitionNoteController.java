@@ -8,6 +8,7 @@ import com.vetsync.backend.service.PatientDayTaskDefinitionNoteService;
 import com.vetsync.backend.service.TaskAndDefinitionNoteCreationFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -49,14 +50,15 @@ public class PatientDayTaskDefinitionNoteController {
     // =========================
     @Operation(
             summary = "TaskDefinition 공용 노트 생성",
-            description = "특정 TaskDefinition에 대한 공용 노트를 생성하고, 관련 task들과 자동으로 연결합니다."
+            description = "특정 TaskDefinition에 대한 공용 노트를 생성하고, 관련 task들과 자동으로 연결합니다." +
+                    "기존 메모가 공백인 경우에도 동작합니다"
     )
     @PostMapping
     public ResponseEntity<PatientDayTaskDefinitionNoteInfoResponse> createDefinitionNote(
             @HospitalId UUID hospitalId,
             @PathVariable UUID patientId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate taskDate,
-            @RequestBody PatientDayTaskDefinitionNoteCreateRequest request
+            @Valid @RequestBody PatientDayTaskDefinitionNoteCreateRequest request
     ) {
         return ResponseEntity.ok(
                 taskAndDefinitionNoteCreationFacade.createPatientDayTaskDefinition(
@@ -78,7 +80,7 @@ public class PatientDayTaskDefinitionNoteController {
             @PathVariable UUID patientId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate taskDate,
             @PathVariable UUID noteId,
-            @RequestBody PatientDayTaskDefinitionNoteUpdateRequest request
+            @Valid @RequestBody PatientDayTaskDefinitionNoteUpdateRequest request
     ) {
         return ResponseEntity.ok(
                 patientDayTaskDefinitionNoteService.updateDefinitionNote(
