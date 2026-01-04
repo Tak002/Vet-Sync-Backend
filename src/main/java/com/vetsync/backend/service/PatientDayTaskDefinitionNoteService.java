@@ -7,6 +7,8 @@ import com.vetsync.backend.domain.TaskDefinition;
 import com.vetsync.backend.dto.patientDayTaskDefinitionNote.PatientDayTaskDefinitionNoteCreateRequest;
 import com.vetsync.backend.dto.patientDayTaskDefinitionNote.PatientDayTaskDefinitionNoteInfoResponse;
 import com.vetsync.backend.dto.patientDayTaskDefinitionNote.PatientDayTaskDefinitionNoteUpdateRequest;
+import com.vetsync.backend.global.exception.CustomException;
+import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.PatientDayTaskDefinitionNoteRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -59,10 +61,19 @@ public class PatientDayTaskDefinitionNoteService {
     }
 
     // definition note 수정
-    // null로 바뀔경우 task도 null로 변경
+    // ""(빈 문자열)로 수정하는 것도 허용
+    // null로 수정하는 것은 허용하지 않음 (변경 없음 정책)
     @Transactional
     public  PatientDayTaskDefinitionNoteInfoResponse updateDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, UUID noteId, PatientDayTaskDefinitionNoteUpdateRequest request) {
         patientService.validatePatientAccessible(hospitalId, patientId);
-        return null;
+
+        // 수정할 note 조회
+        // 본래 id와 hospitalId 만으로도 조회가 가능하나, 추가로 patientId와 taskDate 조건을 넣어 안전성 강화
+        PatientDayTaskDefinitionNote note = patientDayTaskDefinitionNoteRepository.findByIdAndHospital_IdAndPatient_IdAndTaskDate(noteId, hospitalId, patientId, taskDate)
+                .orElseThrow(()-> new CustomException(ErrorCode.TASK_DEFINITION_NOTE_NOT_FOUND));
+        if (request.note() != null) {
+            note.setNote(request.note());
+        }
+        return PatientDayTaskDefinitionNoteInfoResponse.from(note);
     }
 }

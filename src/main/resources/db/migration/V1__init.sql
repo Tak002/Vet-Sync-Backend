@@ -186,7 +186,8 @@ ALTER TABLE tasks
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_pdtddn
         FOREIGN KEY (patient_day_task_definition_note_id)
-            REFERENCES patient_day_task_definition_notes (id);
+            REFERENCES patient_day_task_definition_notes (id)
+                ON DELETE SET NULL;
 
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_assignee
