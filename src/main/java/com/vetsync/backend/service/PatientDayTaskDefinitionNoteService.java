@@ -25,6 +25,7 @@ public class PatientDayTaskDefinitionNoteService {
     private final PatientDayTaskDefinitionNoteRepository patientDayTaskDefinitionNoteRepository;
     private final PatientService patientService;
     private final EntityManager entityManager;
+    private final TaskDefinitionService taskDefinitionService;
 
     // 특정 날짜에 대한 notes 목록 조회
     @Transactional(readOnly = true)
@@ -48,7 +49,10 @@ public class PatientDayTaskDefinitionNoteService {
     // definition note 생성 및 관련 task들과 연결
     @Transactional
     PatientDayTaskDefinitionNoteInfoResponse createDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, PatientDayTaskDefinitionNoteCreateRequest request) {
+        // 요청 값 검증
         patientService.validatePatientAccessible(hospitalId, patientId);
+        taskDefinitionService.validateTaskDefinitionAccessible(hospitalId, request.taskDefinitionId());
+        
         PatientDayTaskDefinitionNote already = patientDayTaskDefinitionNoteRepository.getByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(hospitalId, patientId, taskDate, request.taskDefinitionId());
         // 이미 note가 존재하고, note 내용이 비어있지 않은 경우에는 중복 생성 불가
         if(already != null){

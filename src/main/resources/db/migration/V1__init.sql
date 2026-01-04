@@ -16,8 +16,6 @@ CREATE TYPE patient_status AS ENUM ('REGISTERED','ADMITTED','HOSPITALIZED','DISC
 
 CREATE TYPE staff_role AS ENUM ('CHIEF_VET','VET','SENIOR_TECH','TECH','FRONT');
 
-CREATE TYPE medical_value_type AS ENUM ('INTEGER','FLOAT','STAFF_ID','RESPIRATORY_RATE');
-
 -- =========================================================
 -- TABLES
 -- =========================================================

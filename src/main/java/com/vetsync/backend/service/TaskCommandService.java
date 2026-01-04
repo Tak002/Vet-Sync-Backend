@@ -31,11 +31,12 @@ public class TaskCommandService {
     // Create Task
     @Transactional
     Task createInternal(UUID hospitalId, UUID staffId, TaskCreateRequest req) {
-        // 병원에 존재하지 않는 환자
+        // 요청값 검증
         patientService.validatePatientAccessible(hospitalId, req.patientId());
-        // 병원에 존재하지 않는 업무 정의
         taskDefinitionService.validateTaskDefinitionAccessible(hospitalId, req.taskDefinitionId());
-
+        if(req.assigneeId() != null){
+            staffService.validateStaffId(req.assigneeId(), hospitalId);
+        }
         // 중복된 업무 일정
         if(taskRepository.existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(hospitalId, req.patientId(), req.taskDate(), req.taskHour(),req.taskDefinitionId())){
             throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);
