@@ -126,6 +126,7 @@ public class TaskCommandService {
     @Transactional(propagation = Propagation.MANDATORY) // 트랜잭션이 이미 존재해야 함, PatientDayTaskDefinitionNoteService 에서 사용
     public void linkTasksToDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate,
                                           UUID taskDefinitionId, UUID noteId) {
+        // noteId 가 유효한지에 대한 검증은 TaskAndDefinitionNoteCreationFacade 에서 이미 수행되었다고 가정
         // 해당하는 task들을 찾아서 patientDayTaskDefinitionNote 설정
         taskRepository.findByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(
                 hospitalId, patientId, taskDate, taskDefinitionId
