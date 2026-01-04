@@ -42,7 +42,7 @@ public class PatientDayTaskDefinitionNote extends BaseTimeEntity {
     @JoinColumn(name = "task_definition_id", nullable = false)
     private TaskDefinition taskDefinition;
 
-    @Column(name = "note", nullable = false)
+    @Column(name = "content", nullable = false)
     @Builder.Default
-    private String note = "";
+    private String content = "";
 }

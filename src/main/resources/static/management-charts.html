@@ -662,7 +662,7 @@
                     return `<td class="note-cell muted" title="공백 행은 공용노트를 가질 수 없습니다.">-</td>`;
                 }
                 const note = state.noteByDefId.get(r.defId) ?? null;
-                const noteText = note?.note ?? ""; // 서버 필드가 content면 여기 바꿔줘
+                const noteText = note?.content ?? ""; // 서버 필드가 content면 여기 바꿔줘
                 const noteId = note?.id ?? "";
                 const sub = note ? `id: ${noteId}` : "클릭해서 작성";
                 return `
@@ -743,7 +743,7 @@
 
       <div class="field">
         <div class="muted">공용 노트(note) (지우려면 "" 저장)</div>
-        <textarea id="defNoteTextarea" placeholder="예: 체온 측정 후 2시간 뒤 재측정">${escapeHtml(existing?.note ?? "")}</textarea>
+        <textarea id="defNoteTextarea" placeholder="예: 체온 측정 후 2시간 뒤 재측정">${escapeHtml(existing?.content ?? "")}</textarea>
       </div>
     `;
 
@@ -757,7 +757,7 @@
         $("#btnSaveDefNote").addEventListener("click", async ()=>{
             try{
                 const noteText = ($("#defNoteTextarea").value ?? "");
-                const payload = { note: noteText };
+                const payload = { content: noteText };
 
                 // 존재하면 PATCH, 없으면 POST
                 if(existing?.id){
@@ -766,7 +766,7 @@
                 }else{
                     await API.createDefinitionNote(state.patientId, state.date, {
                         taskDefinitionId: defId,
-                        note: noteText
+                        content: noteText
                     });
                     toast("공용 노트 생성 완료");
                 }
@@ -785,7 +785,7 @@
         // ✅ 공용 노트(정의 기준)
         const defNote = state.noteByDefId.get(task.taskDefinitionId) ?? null;
         const defNoteId = defNote?.id ?? null;
-        const defNoteText = defNote?.note ?? "";
+        const defNoteText = defNote?.content ?? "";
 
         const body = `
       <div class="help">

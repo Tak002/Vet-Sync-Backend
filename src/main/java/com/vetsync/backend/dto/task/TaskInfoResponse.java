@@ -89,7 +89,7 @@ public record TaskInfoResponse(
 
                 e.getPatientDayTaskDefinitionNote() == null
                         ? null
-                        : e.getPatientDayTaskDefinitionNote().getNote(),
+                        : e.getPatientDayTaskDefinitionNote().getContent(),
 
                 e.getAssignee() == null ? null : e.getAssignee().getId(),
                 e.getCreatedBy().getId(),

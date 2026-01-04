@@ -83,7 +83,7 @@ CREATE TABLE patient_day_task_definition_notes (
     patient_id uuid NOT NULL,
     task_date date NOT NULL,
     task_definition_id uuid NOT NULL,
-    note text NOT NULL DEFAULT '',
+    content text NOT NULL DEFAULT '',
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
