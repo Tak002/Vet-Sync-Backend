@@ -1,6 +1,5 @@
 package com.vetsync.backend.domain;
 
-import com.vetsync.backend.global.enums.MedicalValueType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,15 +25,11 @@ public class TaskDefinition {
     private String name;
 
     @Column(nullable = false)
-    private boolean isGlobal;
+    private boolean isFixed;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id")
     private Hospital hospital;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MedicalValueType valueType;
 
     private String description;
 }

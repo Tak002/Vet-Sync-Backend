@@ -19,10 +19,15 @@
             --confirm:#2a0b3a;
             --completed:#0a3a17;
 
-            --chip:#14264a;
-
             --shadow: 0 10px 25px rgba(0,0,0,.35);
             --radius: 14px;
+
+            /* sticky column widths */
+            --col1: 160px;   /* Definition */
+            --col2: 260px;   /* Definition Note */
+            --col3: 90px;    /* 처치시간 */
+            --col2-left: var(--col1);
+            --col3-left: calc(var(--col1) + var(--col2));
         }
         *{box-sizing:border-box}
         body{
@@ -33,44 +38,17 @@
             radial-gradient(1200px 800px at 90% 40%, #1a2a54 0%, rgba(26,42,84,0) 60%),
             var(--bg);
         }
-        a{color:inherit}
-        .app{
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 18px;
-            display:flex;
-            flex-direction:column;
-            gap:14px;
-        }
-        .topbar{
-            display:flex;
-            justify-content:space-between;
-            align-items:flex-start;
-            gap:14px;
-        }
+        .app{max-width:1600px;margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+        .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
         .card{
             background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
             border: 1px solid rgba(255,255,255,.08);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
         }
-        .patient{
-            flex:1;
-            padding:14px 14px 10px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-        }
-        .patient h1{
-            margin:0;
-            font-size:18px;
-            letter-spacing:.2px;
-        }
-        .meta{
-            display:grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap:10px;
-        }
+        .patient{flex:1;padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px}
+        .patient h1{margin:0;font-size:18px;letter-spacing:.2px}
+        .meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
         .kv{
             background: rgba(0,0,0,.15);
             border:1px solid rgba(255,255,255,.08);
@@ -81,26 +59,10 @@
         .kv .k{font-size:12px;color:var(--muted);margin-bottom:4px}
         .kv .v{font-size:13px;word-break:break-all}
 
-        .actions{
-            width: 320px;
-            padding:14px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-        }
-        .actions h2{
-            margin:0;
-            font-size:14px;
-            color: var(--muted);
-            font-weight:600;
-        }
-        .row{
-            display:flex;
-            gap:10px;
-            align-items:center;
-            flex-wrap:wrap;
-        }
-        input[type="text"], input[type="date"]{
+        .actions{width:320px;padding:14px;display:flex;flex-direction:column;gap:10px}
+        .actions h2{margin:0;font-size:14px;color:var(--muted);font-weight:600}
+        .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+        input[type="text"], input[type="date"], input[type="password"]{
             width:100%;
             background: rgba(0,0,0,.22);
             border:1px solid rgba(255,255,255,.10);
@@ -109,7 +71,7 @@
             border-radius: 10px;
             outline:none;
         }
-        input[type="text"]:focus, input[type="date"]:focus{
+        input[type="text"]:focus, input[type="date"]:focus, input[type="password"]:focus{
             border-color: rgba(160,200,255,.45);
             box-shadow: 0 0 0 3px rgba(80,140,255,.18);
         }
@@ -125,97 +87,68 @@
         }
         button:hover{ transform: translateY(-1px); background: rgba(90,150,255,.25); }
         button:active{ transform: translateY(0px); }
-        .btn-ghost{
-            background: rgba(255,255,255,.06);
-            border-color: rgba(255,255,255,.10);
-        }
+        button:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+        .btn-ghost{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.10); }
+        .btn-success{ background: rgba(70,220,140,.14); border-color: rgba(70,220,140,.30); }
 
-        .legend{
-            display:flex;
-            gap:8px;
-            flex-wrap:wrap;
-            margin-top:6px;
-        }
+        .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
         .pill{
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-            padding:6px 10px;
+            display:inline-flex;align-items:center;gap:8px;padding:6px 10px;
             background: rgba(255,255,255,.06);
             border:1px solid rgba(255,255,255,.08);
-            border-radius: 999px;
-            font-size:12px;
-            color: var(--muted);
+            border-radius: 999px;font-size:12px;color: var(--muted);
         }
-        .dot{
-            width:10px;height:10px;border-radius:50%;
-            background: var(--empty);
-            border:1px solid rgba(255,255,255,.10);
-        }
+        .dot{width:10px;height:10px;border-radius:50%;background: var(--empty);border:1px solid rgba(255,255,255,.10)}
         .dot.pending{ background: var(--pending); }
         .dot.inprogress{ background: var(--inprogress); }
         .dot.confirm{ background: var(--confirm); }
         .dot.completed{ background: var(--completed); }
 
-        .table-wrap{
-            padding: 12px;
-            overflow:auto;
-            border-radius: var(--radius);
-        }
-        table{
-            border-collapse: separate;
-            border-spacing: 0;
-            min-width: 1400px;
-            width: 100%;
-            color: var(--text);
-            font-size: 12px;
-        }
+        .table-wrap{padding:12px;overflow:auto;border-radius: var(--radius)}
+        table{border-collapse:separate;border-spacing:0;min-width:1560px;width:100%;color:var(--text);font-size:12px}
         thead th{
-            position: sticky;
-            top: 0;
-            z-index: 5;
+            position: sticky; top:0; z-index:6;
             background: rgba(12,23,44,.95);
             backdrop-filter: blur(6px);
             border-bottom: 1px solid rgba(255,255,255,.10);
         }
         th, td{
-            border-right: 1px solid rgba(255,255,255,.06);
-            border-bottom: 1px solid rgba(255,255,255,.06);
-            padding: 8px 8px;
-            text-align:center;
-            vertical-align: middle;
-            white-space:nowrap;
+            border-right:1px solid rgba(255,255,255,.06);
+            border-bottom:1px solid rgba(255,255,255,.06);
+            padding:8px 8px;text-align:center;vertical-align:middle;white-space:nowrap
         }
+
+        /* Sticky columns: 1) Definition 2) Definition Note 3) 처치시간 */
         th:first-child, td:first-child{
-            position: sticky;
-            left: 0;
-            z-index: 4;
+            position: sticky; left:0; z-index:5;
             background: rgba(12,23,44,.95);
             backdrop-filter: blur(6px);
             text-align:left;
-            min-width: 160px;
-            max-width: 220px;
+            min-width:var(--col1); max-width:var(--col1);
         }
         th:nth-child(2), td:nth-child(2){
-            position: sticky;
-            left: 160px;
-            z-index: 4;
+            position: sticky; left:var(--col2-left); z-index:5;
             background: rgba(12,23,44,.95);
             backdrop-filter: blur(6px);
-            min-width: 90px;
+            text-align:left;
+            min-width:var(--col2); max-width:var(--col2);
         }
+        th:nth-child(3), td:nth-child(3){
+            position: sticky; left:var(--col3-left); z-index:5;
+            background: rgba(12,23,44,.95);
+            backdrop-filter: blur(6px);
+            min-width:var(--col3); max-width:var(--col3);
+        }
+
         td.cell{
             cursor:pointer;
             background: rgba(0,0,0,.12);
-            transition: .12s ease;
-            min-width: 52px;
-            max-width: 86px;
-            overflow:hidden;
-            text-overflow:ellipsis;
+            transition:.12s ease;
+            min-width:52px; max-width:86px; overflow:hidden; text-overflow:ellipsis;
         }
         td.cell:hover{
-            outline: 2px solid rgba(140,190,255,.45);
-            outline-offset: -2px;
+            outline:2px solid rgba(140,190,255,.45);
+            outline-offset:-2px;
             filter: brightness(1.07);
         }
         td.cell.empty{ background: rgba(0,0,0,.10); color: rgba(232,238,252,.35); }
@@ -224,63 +157,68 @@
         td.cell.confirm{ background: color-mix(in oklab, var(--confirm) 82%, black 18%); }
         td.cell.completed{ background: color-mix(in oklab, var(--completed) 82%, black 18%); }
         td.cell .result{
-            display:block;
-            font-size: 11px;
-            line-height: 1.2;
-            max-height: 2.4em;
-            overflow:hidden;
-            text-overflow: ellipsis;
-            padding: 0 2px;
+            display:block;font-size:11px;line-height:1.2;max-height:2.4em;
+            overflow:hidden;text-overflow:ellipsis;padding:0 2px
         }
-        td.cell .sub{
+        td.cell .sub{display:block;margin-top:3px;font-size:10px;color: rgba(232,238,252,.70);}
+
+        .row-title{display:flex;flex-direction:column;gap:2px;padding:0 2px}
+        .row-title .name{font-weight:700}
+        .row-title .desc{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+
+        /* Definition-note cell */
+        td.note-cell{
+            cursor:pointer;
+            background: rgba(0,0,0,.10);
+            transition:.12s ease;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        td.note-cell:hover{
+            outline:2px solid rgba(140,190,255,.45);
+            outline-offset:-2px;
+            filter: brightness(1.07);
+        }
+        td.note-cell .note-text{
+            display:block;
+            max-width: calc(var(--col2) - 16px);
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            font-size:11px;
+            color: rgba(232,238,252,.92);
+        }
+        td.note-cell .note-sub{
             display:block;
             margin-top:3px;
             font-size:10px;
-            color: rgba(232,238,252,.70);
+            color: rgba(232,238,252,.65);
         }
-
-        .row-title{
-            display:flex;
-            flex-direction:column;
-            gap:2px;
-            padding: 0 2px;
-        }
-        .row-title .name{ font-weight:700; }
-        .row-title .desc{ font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis }
 
         .toast{
-            position: fixed;
-            left: 50%;
-            bottom: 18px;
-            transform: translateX(-50%);
+            position: fixed; left:50%; bottom:18px; transform: translateX(-50%);
             background: rgba(0,0,0,.55);
             border:1px solid rgba(255,255,255,.10);
-            padding: 10px 12px;
+            padding:10px 12px;
             border-radius: 12px;
             box-shadow: var(--shadow);
             color: var(--text);
-            font-size: 13px;
+            font-size:13px;
             display:none;
-            z-index: 9999;
-            max-width: 90vw;
+            z-index:9999;
+            max-width:90vw;
             white-space:nowrap;
             overflow:hidden;
             text-overflow:ellipsis;
         }
 
         /* Modal */
-        .overlay{
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.55);
-            display:none;
-            z-index: 10000;
-            padding: 18px;
-        }
+        .overlay{position:fixed;inset:0;background: rgba(0,0,0,.55);display:none;z-index:10000;padding:18px}
         .modal{
-            max-width: 820px;
-            margin: 0 auto;
-            margin-top: 40px;
+            max-width: 980px;
+            margin:0 auto;
+            margin-top:40px;
             background: rgba(15,27,51,.95);
             border:1px solid rgba(255,255,255,.10);
             border-radius: var(--radius);
@@ -288,40 +226,15 @@
             overflow:hidden;
         }
         .modal header{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            gap:10px;
+            display:flex;justify-content:space-between;align-items:center;
+            padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);gap:10px
         }
-        .modal header h3{
-            margin:0;
-            font-size:14px;
-            color: var(--text);
-        }
-        .modal header .close{
-            background: rgba(255,255,255,.06);
-            border:1px solid rgba(255,255,255,.10);
-            padding: 8px 10px;
-            border-radius: 10px;
-        }
-        .modal .body{
-            padding: 14px;
-            display:flex;
-            gap:12px;
-            flex-direction:column;
-        }
-        .grid2{
-            display:grid;
-            grid-template-columns: 1fr 1fr;
-            gap:10px;
-        }
-        .help{
-            font-size:12px;
-            color: var(--muted);
-            line-height:1.45;
-        }
+        .modal header h3{margin:0;font-size:14px;color:var(--text)}
+        .modal header .close{background: rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);padding:8px 10px;border-radius: 10px}
+        .modal .body{padding:14px;display:flex;gap:12px;flex-direction:column}
+        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .help{font-size:12px;color:var(--muted);line-height:1.45}
         textarea, select{
             width:100%;
             background: rgba(0,0,0,.22);
@@ -331,31 +244,36 @@
             border-radius: 10px;
             outline:none;
             resize: vertical;
-            min-height: 90px;
+            min-height: 110px;
         }
         select{ min-height: unset; height: 40px; }
+        textarea{ min-height: 90px; }
         .modal footer{
-            padding: 12px 14px;
-            border-top: 1px solid rgba(255,255,255,.08);
-            display:flex;
-            gap:10px;
-            justify-content:flex-end;
-            flex-wrap:wrap;
+            padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);
+            display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;align-items:center
         }
-        .danger{
-            background: rgba(255,80,80,.15);
-            border-color: rgba(255,80,80,.30);
-        }
-        .muted{
-            color: var(--muted);
+        .muted{color: var(--muted);font-size:12px}
+        .chip{
+            display:inline-flex;align-items:center;gap:8px;padding:6px 10px;
+            background: rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius: 999px;
             font-size:12px;
+            color: var(--muted);
         }
+        .field .muted{margin:0 0 6px}
 
         @media (max-width: 980px){
             .topbar{flex-direction:column;}
             .actions{width:100%;}
             .meta{grid-template-columns: repeat(2, minmax(0,1fr));}
-            th:nth-child(2), td:nth-child(2){ left: 160px; }
+            .two-col{ grid-template-columns: 1fr; }
+
+            :root{
+                --col1: 160px;
+                --col2: 220px;
+                --col3: 90px;
+            }
         }
     </style>
 </head>
@@ -370,6 +288,13 @@
 
         <div class="card actions">
             <h2>페이지 설정</h2>
+
+            <div class="row">
+                <div style="flex:1">
+                    <div class="muted" style="margin:0 0 6px">JWT Token</div>
+                    <input id="jwtInput" type="password" placeholder="토큰만 붙여넣기 (Bearer 자동)" />
+                </div>
+            </div>
 
             <div class="row">
                 <div style="flex:1">
@@ -391,7 +316,7 @@
             </div>
 
             <div class="muted">
-                경로: <code>/tasks/patients/{patientId}/management-charts/{date}</code>
+                경로: <code>/tasks/patients/{patientId}/{taskDate}</code>
             </div>
 
             <div class="legend">
@@ -403,9 +328,9 @@
             </div>
 
             <div class="help">
-                • 왼쪽(업무 정의) 행 + 시간 셀 클릭 → 해당 Task 생성<br/>
-                • 빈 행(공백) 클릭 → 추가 가능한 TaskDefinition 선택 후 생성<br/>
-                • 이미 Task가 있는 셀 클릭 → Task 상세 보기<br/>
+                • Task 셀 클릭 → Task 생성/상세<br/>
+                • 공용 노트 셀 클릭 → 공용 노트 생성/수정<br/>
+                • PATCH 규칙: <b>null=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
             </div>
         </div>
     </div>
@@ -433,39 +358,35 @@
     /***********************
      * CONFIG
      ***********************/
-        // API Base (필요하면 수정)
     const API_BASE = "";
-
-    // 시간 헤더 (AM/PM + 12/1..11 + 12/1..11) = 24칸
-    const HOURS = Array.from({length: 24}, (_, i) => i); // 0~23 내부키
-    // UI 표기: 0=12AM, 1=1AM ... 11=11AM, 12=12PM, 13=1PM ...
-    const hourLabel = (h) => {
-        const isPM = h >= 12;
-        const v = h % 12 === 0 ? 12 : (h % 12);
-        return String(v);
-    };
+    const HOURS = Array.from({length: 24}, (_, i) => i);
+    const hourLabel = (h) => String(h % 12 === 0 ? 12 : (h % 12));
     const hourPeriod = (h) => (h < 12 ? "AM" : "PM");
-
-    // 글로벌 정의는 항상 위에 배치 (name 기준 기본 정렬)
-    // 비글로벌 정의는 해당 날짜 tasks에 등장하면 아래쪽에 동적으로 추가
+    const STATUS_LIST = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
 
     /***********************
      * STATE
      ***********************/
     const state = {
+        jwtToken: "",
         patientId: null,
-        date: null, // yyyy-mm-dd
-        patient: null, // PatientInfoResponse
-        defs: [], // all accessible task definitions
+        date: null,
+        patient: null,
+
+        defs: [],
         defById: new Map(),
-        globalDefs: [],
-        nonGlobalDefs: [],
-        // row model: { type:'DEF'|'BLANK', defId?, blankIndex?, label, desc }
+        fixedDefs: [],
+        notFixedDefs: [],
+
+        staffs: [],
+        staffById: new Map(),
+
         rows: [],
-        // tasks for the date: keyed by (defId + '|' + hour)
         taskMap: new Map(),
-        // original tasks array for detail lookup
         tasks: [],
+
+        definitionNotes: [],
+        noteByDefId: new Map(),   // key: taskDefinitionId -> note DTO
     };
 
     /***********************
@@ -484,13 +405,10 @@
     }
 
     function getPathParamsFromUrl(){
-        // 기대 경로: /patients/{patientId}/management-charts/{date}
         const parts = location.pathname.split("/").filter(Boolean);
         const idx = parts.indexOf("patients");
         if(idx !== -1 && parts[idx+2] === "management-charts"){
-            const pid = parts[idx+1];
-            const date = parts[idx+3];
-            return { pid, date };
+            return { pid: parts[idx+1], date: parts[idx+3] };
         }
         return { pid: null, date: null };
     }
@@ -506,45 +424,111 @@
         }
     }
 
-    function validateStatusTransition(current, next){
-        const order = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
-        const ci = order.indexOf(current);
-        const ni = order.indexOf(next);
-        if(ci === -1 || ni === -1) return false;
-        return ni === ci + 1; // 반드시 한 단계씩만
+    function readJwtFromInputAndPersist(){
+        const jwt = ($("#jwtInput").value ?? "").trim();
+        state.jwtToken = jwt;
+        localStorage.setItem("jwtToken", jwt);
     }
 
     async function apiFetch(path, opts={}){
         const headers = opts.headers ? {...opts.headers} : {};
         headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
-        // TODO: JWT 사용 시 여기에 Authorization 추가
-        // headers["Authorization"] = "Bearer ...";
+
+        const token = (state.jwtToken ?? "").trim();
+        if(token){
+            headers["Authorization"] = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+        }
+
         const res = await fetch(API_BASE + path, {...opts, headers});
         if(!res.ok){
             let body = "";
             try { body = await res.text(); } catch {}
+            if(res.status === 401){
+                throw new Error(`HTTP 401 Unauthorized - JWT 토큰을 확인해줘. ${body}`.trim());
+            }
             throw new Error(`HTTP ${res.status} ${res.statusText} - ${body}`);
         }
-        // 204 대비
         const text = await res.text();
         return text ? JSON.parse(text) : null;
     }
 
+    function staffLabelById(id){
+        if(!id) return "(미지정)";
+        const s = state.staffById.get(id);
+        if(!s) return id;
+        return `${s.name} (${s.role}${s.isActive ? "" : " · 비활성"})`;
+    }
+
+    function renderStaffSelect(selectId, selectedStaffId){
+        const list = (state.staffs ?? []).slice()
+            .sort((a,b)=> (b.isActive - a.isActive) || (a.name ?? "").localeCompare(b.name ?? ""));
+
+        const options = [
+            `<option value="">(미지정으로 저장)</option>`,
+            ...list.map(s => {
+                const selected = (s.id === selectedStaffId) ? "selected" : "";
+                const inactive = s.isActive ? "" : " [비활성]";
+                return `<option value="${escapeHtml(s.id)}" ${selected}>${escapeHtml(s.name)} · ${escapeHtml(s.role)}${inactive}</option>`;
+            })
+        ].join("");
+
+        return `<select id="${escapeHtml(selectId)}">${options}</select>`;
+    }
+
+    function renderStatusSelect(selectId, selectedStatus){
+        return `<select id="${escapeHtml(selectId)}">${
+            STATUS_LIST.map(st => `<option value="${escapeHtml(st)}" ${st===selectedStatus?"selected":""}>${escapeHtml(st)}</option>`).join("")
+        }</select>`;
+    }
+
+    /**
+     * PATCH payload 규칙:
+     * - null  : 변경 없음(필드 미포함으로 보냄)
+     * - ""    : 비우기(미지정/삭제)
+     * - "..." : 값 설정
+     */
+    function buildPatchPayloadWithEmptyAllowed(originalTask, cur){
+        const payload = {};
+
+        const origAssignee = (originalTask.assigneeId ?? "");
+        const curAssignee = (cur.assigneeId ?? "");
+        if(curAssignee !== origAssignee){
+            payload.assigneeId = curAssignee; // "" 가능
+        }
+
+        const origNotes = (originalTask.taskNotes ?? "");
+        const curNotes = (cur.taskNotes ?? "");
+        if(curNotes !== origNotes){
+            payload.taskNotes = curNotes; // "" 가능
+        }
+
+        const origResult = (originalTask.result ?? "");
+        const curResult = (cur.result ?? "");
+        if(curResult !== origResult){
+            payload.result = curResult; // "" 가능
+        }
+
+        return payload;
+    }
+
     /***********************
-     * API CALLS (당신의 서버에 맞춤)
+     * API
      ***********************/
     const API = {
-        // GET /patients/{patientId}
         getPatient: (patientId) => apiFetch(`/patients/${patientId}`, { method:"GET" }),
-
-        // GET /task-definitions
         getTaskDefinitions: () => apiFetch(`/task-definitions`, { method:"GET" }),
-
-        // GET /patients/{patientId}/days/{taskDate}
-        getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/days/${taskDate}`, { method:"GET" }),
-
-        // POST /tasks
+        getPatientDayTasks: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/${taskDate}`, { method:"GET" }),
         createTask: (payload) => apiFetch(`/tasks`, { method:"POST", body: JSON.stringify(payload) }),
+
+        getStaffs: () => apiFetch(`/staffs`, { method:"GET" }),
+
+        patchTask: (taskId, payload) => apiFetch(`/tasks/${taskId}`, { method:"PATCH", body: JSON.stringify(payload) }),
+        patchTaskStatus: (taskId, status) => apiFetch(`/tasks/${taskId}/status`, { method:"PATCH", body: JSON.stringify({ status }) }),
+
+        // ✅ NEW: definition-notes
+        getDefinitionNotes: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes`, { method:"GET" }),
+        createDefinitionNote: (patientId, taskDate, payload) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes`, { method:"POST", body: JSON.stringify(payload) }),
+        patchDefinitionNote: (patientId, taskDate, noteId, payload) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes/${noteId}`, { method:"PATCH", body: JSON.stringify(payload) }),
     };
 
     /***********************
@@ -577,56 +561,45 @@
     }
 
     /***********************
-     * BUILD ROWS
+     * BUILD ROWS / MAPS
      ***********************/
     function buildRows(){
-        // 1) 글로벌 정의: 항상 표시
-        // 2) 비글로벌 정의: 해당 날짜 task에 존재하는 defId만 표시
-        // 3) 공백 row: 4줄 제공 (요구사항)
-        const globalRows = state.globalDefs
+        const fixedRows = state.fixedDefs
             .slice()
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
-            .map(def => ({
-                type:"DEF",
-                defId: def.id,
-                label: def.name,
-                desc: def.description ?? ""
-            }));
+            .map(def => ({ type:"DEF", defId:def.id, label:def.name, desc:def.description ?? "" }));
 
-        const usedNonGlobalDefIds = new Set();
+        const usedNotFixedDefIds = new Set();
         for(const t of state.tasks){
             const def = state.defById.get(t.taskDefinitionId);
-            if(def && !def.global) usedNonGlobalDefIds.add(def.id);
+            if(def && !def.fixed) usedNotFixedDefIds.add(def.id);
         }
-        const nonGlobalRows = Array.from(usedNonGlobalDefIds)
+
+        const notFixedRows = Array.from(usedNotFixedDefIds)
             .map(id => state.defById.get(id))
             .filter(Boolean)
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""))
-            .map(def => ({
-                type:"DEF",
-                defId: def.id,
-                label: def.name,
-                desc: def.description ?? ""
-            }));
+            .map(def => ({ type:"DEF", defId:def.id, label:def.name, desc:def.description ?? "" }));
 
-        const blankRows = Array.from({length:4}, (_,i)=>({
-            type:"BLANK",
-            blankIndex: i+1,
-            label: "(공백)",
-            desc: "클릭해서 항목 추가"
-        }));
+        const blankRows = Array.from({length:4}, (_,i)=>({ type:"BLANK", blankIndex:i+1, label:"(공백)", desc:"클릭해서 항목 추가" }));
 
-        state.rows = [...globalRows, ...nonGlobalRows, ...blankRows];
+        state.rows = [...fixedRows, ...notFixedRows, ...blankRows];
     }
 
-    /***********************
-     * BUILD TASK MAP
-     ***********************/
     function buildTaskMap(){
         state.taskMap.clear();
         for(const t of state.tasks){
-            const key = `${t.taskDefinitionId}|${t.taskHour}`;
-            state.taskMap.set(key, t);
+            state.taskMap.set(`${t.taskDefinitionId}|${t.taskHour}`, t);
+        }
+    }
+
+    function buildNoteMap(){
+        state.noteByDefId = new Map();
+        for(const n of (state.definitionNotes ?? [])){
+            // 서버 응답 필드명은 너가 쓰는 DTO 기준:
+            // { id, patientId, taskDefinitionId, taskDate, note, ... } 라고 가정
+            // (필드가 다르면 아래 mapping만 바꾸면 됨)
+            state.noteByDefId.set(n.taskDefinitionId, n);
         }
     }
 
@@ -635,24 +608,20 @@
      ***********************/
     function renderTable(){
         const table = $("#chartTable");
-        if(!state.date){
-            table.innerHTML = "";
-            return;
-        }
+        if(!state.date){ table.innerHTML = ""; return; }
 
-        // THEAD
-        // Row 1: Date | 처치시간 | AM span 12 | PM span 12 | Order & Results
-        // Row 2: (blank) | 12 1..11 12 1..11 | (blank)
-        const th1 = `
+        const thead = `
       <thead>
         <tr>
           <th>Date</th>
+          <th>공용노트</th>
           <th>처치시간</th>
           <th colspan="12">AM</th>
           <th colspan="12">PM</th>
-          <th>Order &amp; Results</th>
+          <th>Info</th>
         </tr>
         <tr>
+          <th></th>
           <th></th>
           <th>12</th>
           ${HOURS.slice(1,12).map(h=>`<th>${hourLabel(h)}</th>`).join("")}
@@ -663,7 +632,6 @@
       </thead>
     `;
 
-        // TBODY
         const rowsHtml = state.rows.map((r, rowIdx)=>{
             const left = r.type==="DEF"
                 ? (() => {
@@ -688,57 +656,64 @@
             </td>
           `;
 
-            // "처치시간" 열: 여기서는 "-" 표시(샘플표처럼). 필요하면 요일/기타로 변경 가능
-            const timeCol = `<td>${r.type==="DEF" ? "-" : "-"}</td>`;
+            // ✅ 공용 노트 컬럼
+            const noteCell = (() => {
+                if(r.type !== "DEF"){
+                    return `<td class="note-cell muted" title="공백 행은 공용노트를 가질 수 없습니다.">-</td>`;
+                }
+                const note = state.noteByDefId.get(r.defId) ?? null;
+                const noteText = note?.note ?? ""; // 서버 필드가 content면 여기 바꿔줘
+                const noteId = note?.id ?? "";
+                const sub = note ? `id: ${noteId}` : "클릭해서 작성";
+                return `
+          <td class="note-cell"
+              data-cell-kind="NOTE"
+              data-def-id="${escapeHtml(r.defId)}"
+              data-note-id="${escapeHtml(noteId)}">
+            <span class="note-text" title="${escapeHtml(noteText)}">${escapeHtml(noteText || "—")}</span>
+            <span class="note-sub">${escapeHtml(sub)}</span>
+          </td>
+        `;
+            })();
+
+            const timeCol = `<td>-</td>`;
 
             const hourCells = HOURS.map(h=>{
-                // DEF row일 때만 task 매핑
                 let task = null;
-                if(r.type==="DEF"){
-                    task = state.taskMap.get(`${r.defId}|${h}`) ?? null;
-                }
+                if(r.type==="DEF") task = state.taskMap.get(`${r.defId}|${h}`) ?? null;
 
-                // cell style
                 const cls = task ? statusToClass(task.status) : "empty";
                 const labelTop = task?.result ? escapeHtml(task.result) : "—";
-                const small = task ? `<span class="sub">${escapeHtml(task.status)}</span>` : `<span class="sub">${hourPeriod(h)} ${hourLabel(h)}</span>`;
-
-                // 클릭 데이터
-                const data = {
-                    rowType: r.type,
-                    defId: r.type==="DEF" ? r.defId : "",
-                    blankIndex: r.type==="BLANK" ? r.blankIndex : "",
-                    hour: h,
-                };
+                const small = task
+                    ? `<span class="sub">${escapeHtml(task.status)}</span>`
+                    : `<span class="sub">${hourPeriod(h)} ${hourLabel(h)}</span>`;
 
                 return `
           <td class="cell ${cls}"
-              data-row-type="${data.rowType}"
-              data-def-id="${data.defId}"
-              data-blank-index="${data.blankIndex}"
-              data-hour="${data.hour}">
+              data-cell-kind="TASK"
+              data-row-type="${r.type}"
+              data-def-id="${r.type==="DEF" ? r.defId : ""}"
+              data-blank-index="${r.type==="BLANK" ? r.blankIndex : ""}"
+              data-hour="${h}">
             <span class="result">${labelTop}</span>
             ${small}
           </td>
         `;
             }).join("");
 
-            // "Order & Results" 컬럼: 행 설명/요약을 표시(요구사항 상 표 모양 유지)
-            // DEF면 valueType 표시, BLANK면 안내
             const right = (() => {
                 if(r.type==="DEF"){
                     const def = state.defById.get(r.defId);
-                    const vt = def?.valueType ?? "-";
-                    const g = def?.global ? "GLOBAL" : "HOSPITAL";
-                    return `<td title="${escapeHtml(def?.description ?? "")}">${escapeHtml(g)} · ${escapeHtml(vt)}</td>`;
+                    const fx = def?.fixed ? "FIXED" : "OPTIONAL";
+                    return `<td title="${escapeHtml(def?.description ?? "")}">${escapeHtml(fx)}</td>`;
                 }
                 return `<td class="muted">빈 행(클릭→항목 선택)</td>`;
             })();
 
-            return `<tr data-row-index="${rowIdx}">${left}${timeCol}${hourCells}${right}</tr>`;
+            return `<tr data-row-index="${rowIdx}">${left}${noteCell}${timeCol}${hourCells}${right}</tr>`;
         }).join("");
 
-        table.innerHTML = th1 + `<tbody>${rowsHtml}</tbody>`;
+        table.innerHTML = thead + `<tbody>${rowsHtml}</tbody>`;
     }
 
     /***********************
@@ -750,64 +725,248 @@
         $("#modalFooter").innerHTML = footerHtml ?? "";
         $("#overlay").style.display = "block";
     }
-    function closeModal(){
-        $("#overlay").style.display = "none";
-    }
-
+    function closeModal(){ $("#overlay").style.display = "none"; }
     $("#modalClose").addEventListener("click", closeModal);
-    $("#overlay").addEventListener("click", (e)=>{
-        if(e.target === $("#overlay")) closeModal();
-    });
+    $("#overlay").addEventListener("click", (e)=>{ if(e.target === $("#overlay")) closeModal(); });
+
+    function openDefinitionNoteModal(defId){
+        const def = state.defById.get(defId);
+        const existing = state.noteByDefId.get(defId) ?? null;
+
+        const body = `
+      <div class="help">
+        <b>${escapeHtml(def?.name ?? defId)}</b> · ${escapeHtml(state.date)} 공용 노트
+        <div class="muted" style="margin-top:6px">
+          ${existing ? `noteId: ${escapeHtml(existing.id)}` : "아직 공용 노트가 없습니다. 저장하면 생성됩니다."}
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="muted">공용 노트(note) (지우려면 "" 저장)</div>
+        <textarea id="defNoteTextarea" placeholder="예: 체온 측정 후 2시간 뒤 재측정">${escapeHtml(existing?.note ?? "")}</textarea>
+      </div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">닫기</button>
+      <button id="btnSaveDefNote" class="btn-success">저장</button>
+    `;
+
+        openModal("TaskDefinition 공용 노트", body, footer);
+
+        $("#btnSaveDefNote").addEventListener("click", async ()=>{
+            try{
+                const noteText = ($("#defNoteTextarea").value ?? "");
+                const payload = { note: noteText };
+
+                // 존재하면 PATCH, 없으면 POST
+                if(existing?.id){
+                    await API.patchDefinitionNote(state.patientId, state.date, existing.id, payload);
+                    toast("공용 노트 수정 완료");
+                }else{
+                    await API.createDefinitionNote(state.patientId, state.date, {
+                        taskDefinitionId: defId,
+                        note: noteText
+                    });
+                    toast("공용 노트 생성 완료");
+                }
+
+                await reloadAll(false);
+                closeModal();
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
 
     function renderTaskDetail(task){
         const def = state.defById.get(task.taskDefinitionId);
+
+        // ✅ 공용 노트(정의 기준)
+        const defNote = state.noteByDefId.get(task.taskDefinitionId) ?? null;
+        const defNoteId = defNote?.id ?? null;
+        const defNoteText = defNote?.note ?? "";
+
         const body = `
+      <div class="help">
+        저장 규칙: <b>null(미포함)=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
+        • 정보(PATCH /tasks/{id}) / 상태(PATCH /tasks/{id}/status)
+      </div>
+
       <div class="grid2">
         <div class="kv"><div class="k">Task ID</div><div class="v">${escapeHtml(task.id)}</div></div>
-        <div class="kv"><div class="k">상태</div><div class="v">${escapeHtml(task.status)}</div></div>
         <div class="kv"><div class="k">정의</div><div class="v">${escapeHtml(def?.name ?? task.taskDefinitionId)}</div></div>
         <div class="kv"><div class="k">날짜/시간</div><div class="v">${escapeHtml(task.taskDate)} / ${escapeHtml(task.taskHour)}시</div></div>
-        <div class="kv"><div class="k">병원</div><div class="v">${escapeHtml(task.hospitalId)}</div></div>
         <div class="kv"><div class="k">환자</div><div class="v">${escapeHtml(task.patientId)}</div></div>
-        <div class="kv"><div class="k">담당자(assignee)</div><div class="v">${escapeHtml(task.assigneeId ?? "-")}</div></div>
-        <div class="kv"><div class="k">생성자(createdBy)</div><div class="v">${escapeHtml(task.createdBy)}</div></div>
+        <div class="kv"><div class="k">생성자</div><div class="v">${escapeHtml(task.createdBy)}</div></div>
+        <div class="kv"><div class="k">현재 담당자</div><div class="v">${escapeHtml(staffLabelById(task.assigneeId))}</div></div>
       </div>
 
-      <div class="kv">
-        <div class="k">업무 메모(taskNotes)</div>
-        <div class="v">${escapeHtml(task.taskNotes ?? "-")}</div>
+      <div class="grid2">
+        <div class="kv"><div class="k">Definition Note ID</div><div class="v">${escapeHtml(defNoteId ?? "-")}</div></div>
+        <div class="kv"><div class="k">Definition Note</div><div class="v">${escapeHtml(defNoteText || "-")}</div></div>
       </div>
 
-      <div class="kv">
-        <div class="k">결과(result)</div>
-        <div class="v">${escapeHtml(task.result ?? "-")}</div>
+      <div class="two-col">
+        <div class="field">
+          <div class="muted">상태(status)</div>
+          ${renderStatusSelect("detailStatusSelect", task.status)}
+          <div class="muted" style="margin-top:6px">※ 상태 저장은 별도 버튼</div>
+        </div>
+
+        <div class="field">
+          <div class="muted">담당자(assigneeId) (""=미지정)</div>
+          ${renderStaffSelect("detailAssigneeSelect", task.assigneeId ?? "")}
+          <div class="muted" style="margin-top:6px">현재: ${escapeHtml(task.assigneeId ?? "(null)")} / 표시: ${escapeHtml(staffLabelById(task.assigneeId))}</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <div class="muted">업무 메모(taskNotes) (지우면 "" 전송)</div>
+          <textarea id="detailNotes" placeholder="업무 메모를 입력">${escapeHtml(task.taskNotes ?? "")}</textarea>
+        </div>
+        <div class="field">
+          <div class="muted">결과(result) (지우면 "" 전송)</div>
+          <textarea id="detailResult" placeholder="결과를 입력">${escapeHtml(task.result ?? "")}</textarea>
+        </div>
       </div>
 
       <div class="grid2">
         <div class="kv"><div class="k">createdAt</div><div class="v">${escapeHtml(task.createdAt)}</div></div>
         <div class="kv"><div class="k">updatedAt</div><div class="v">${escapeHtml(task.updatedAt)}</div></div>
+        <div class="kv"><div class="k">startedAt</div><div class="v">${escapeHtml(task.startedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">confirmRequestedAt</div><div class="v">${escapeHtml(task.confirmRequestedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">completedAt</div><div class="v">${escapeHtml(task.completedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">status</div><div class="v">${escapeHtml(task.status)}</div></div>
       </div>
 
-      <div class="help">
-        ※ 상태 변경은 별도 API(예: PATCH /tasks/{id}/status 등)로 붙이면 여기서도 제어 가능.
-      </div>
+      <div class="help" id="detailDiffHint">변경사항 없음</div>
     `;
+
         const footer = `
       <button class="btn-ghost" onclick="closeModal()">닫기</button>
+      <button id="btnEditDefNote" class="btn-ghost">공용 노트 편집</button>
+      <button id="btnSaveInfo" class="btn-success" disabled>정보 저장</button>
+      <button id="btnSaveStatus" class="btn-success" disabled>상태 저장</button>
     `;
-        openModal("업무 상세", body, footer);
+
+        openModal("업무 상세 (수정 가능)", body, footer);
+
+        $("#btnEditDefNote").addEventListener("click", ()=>{
+            openDefinitionNoteModal(task.taskDefinitionId);
+        });
+
+        const elStatus = $("#detailStatusSelect");
+        const elAssignee = $("#detailAssigneeSelect");
+        const elNotes = $("#detailNotes");
+        const elResult = $("#detailResult");
+        const hint = $("#detailDiffHint");
+
+        const btnInfo = $("#btnSaveInfo");
+        const btnStatus = $("#btnSaveStatus");
+
+        const orig = {
+            status: task.status ?? "",
+            assigneeId: task.assigneeId ?? "",
+            taskNotes: task.taskNotes ?? "",
+            result: task.result ?? ""
+        };
+
+        function computeDiff(){
+            const cur = {
+                status: (elStatus.value ?? ""),
+                assigneeId: (elAssignee.value ?? ""),        // "" 가능
+                taskNotes: (elNotes.value ?? ""),            // "" 가능
+                result: (elResult.value ?? "")               // "" 가능
+            };
+
+            const statusChanged = cur.status !== orig.status;
+            const infoChanged =
+                (cur.assigneeId !== orig.assigneeId) ||
+                (cur.taskNotes !== orig.taskNotes) ||
+                (cur.result !== orig.result);
+
+            btnStatus.disabled = !statusChanged;
+            btnInfo.disabled = !infoChanged;
+
+            const parts = [];
+            if(statusChanged) parts.push(`상태: ${orig.status} → ${cur.status}`);
+            if(cur.assigneeId !== orig.assigneeId) parts.push(`담당자: ${staffLabelById(orig.assigneeId)} → ${staffLabelById(cur.assigneeId)}`);
+            if(cur.taskNotes !== orig.taskNotes) parts.push(`메모: ${cur.taskNotes === "" ? "삭제" : "변경"}`);
+            if(cur.result !== orig.result) parts.push(`결과: ${cur.result === "" ? "삭제" : "변경"}`);
+
+            hint.textContent = parts.length ? `변경됨: ${parts.join(" / ")}` : "변경사항 없음";
+            return {cur, statusChanged, infoChanged};
+        }
+
+        elStatus.addEventListener("change", computeDiff);
+        elAssignee.addEventListener("change", computeDiff);
+        elNotes.addEventListener("input", computeDiff);
+        elResult.addEventListener("input", computeDiff);
+        computeDiff();
+
+        btnInfo.addEventListener("click", async ()=>{
+            const {cur, infoChanged} = computeDiff();
+            if(!infoChanged) return;
+
+            try{
+                btnInfo.disabled = true;
+                btnInfo.textContent = "저장 중...";
+
+                const payload = buildPatchPayloadWithEmptyAllowed(task, cur);
+                if(Object.keys(payload).length === 0){
+                    toast("변경사항 없음");
+                    btnInfo.textContent = "정보 저장";
+                    computeDiff();
+                    return;
+                }
+
+                const updated = await API.patchTask(task.id, payload);
+
+                toast("정보 저장 완료");
+                await reloadAll(false);
+
+                closeModal();
+                renderTaskDetail(updated);
+            }catch(e){
+                toast(e.message);
+            }finally{
+                btnInfo.textContent = "정보 저장";
+            }
+        });
+
+        btnStatus.addEventListener("click", async ()=>{
+            const {cur, statusChanged} = computeDiff();
+            if(!statusChanged) return;
+
+            try{
+                btnStatus.disabled = true;
+                btnStatus.textContent = "저장 중...";
+
+                const updated = await API.patchTaskStatus(task.id, cur.status);
+
+                toast("상태 저장 완료");
+                await reloadAll(false);
+
+                closeModal();
+                renderTaskDetail(updated);
+            }catch(e){
+                toast(e.message);
+            }finally{
+                btnStatus.textContent = "상태 저장";
+            }
+        });
     }
 
     function renderBlankRowPicker(hour){
-        // 이미 표에 들어간 DEF(글로벌 + 현재 표시된 비글로벌) 제외하고 추가 가능한 DEF만 보여주기
         const existingDefIds = new Set(state.rows.filter(r=>r.type==="DEF").map(r=>r.defId));
         const available = state.defs
+            .filter(d => !d.fixed)
             .filter(d => !existingDefIds.has(d.id))
             .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""));
 
-        const options = available.map(d=>`
-      <option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} · ${escapeHtml(d.valueType)} ${d.global ? "(GLOBAL)" : "(HOSPITAL)"}</option>
-    `).join("");
+        const options = available.map(d=>`<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} (OPTIONAL)</option>`).join("");
 
         const body = `
       <div class="help">
@@ -816,9 +975,7 @@
       <div class="grid2">
         <div>
           <div class="muted" style="margin:0 0 6px">추가할 TaskDefinition</div>
-          <select id="pickDef">
-            ${options || `<option value="">추가 가능한 항목이 없습니다</option>`}
-          </select>
+          <select id="pickDef">${options || `<option value="">추가 가능한 항목이 없습니다</option>`}</select>
         </div>
         <div>
           <div class="muted" style="margin:0 0 6px">업무 메모(선택)</div>
@@ -841,7 +998,6 @@
             const notes = $("#pickNotes").value || null;
             try{
                 await createTask(defId, hour, notes);
-                // 새 defId가 등장했으니 rows 재구성 후 렌더
                 await reloadAll(false);
                 closeModal();
                 toast("추가 및 생성 완료");
@@ -853,31 +1009,36 @@
 
     function renderCreateTaskModal(defId, hour){
         const def = state.defById.get(defId);
+
         const body = `
       <div class="help">
         <b>${escapeHtml(def?.name ?? defId)}</b> · ${escapeHtml(state.date)} / ${hour}시 Task를 생성합니다.
       </div>
+
       <div class="grid2">
         <div>
           <div class="muted" style="margin:0 0 6px">업무 메모(taskNotes)</div>
           <input id="createNotes" type="text" placeholder="예: 체온 측정 후 기록" />
         </div>
         <div>
-          <div class="muted" style="margin:0 0 6px">담당자 staffId(선택)</div>
-          <input id="createAssignee" type="text" placeholder="214c43a5-5a9a-4c75-8f3f-669c10136e5a" />
+          <div class="muted" style="margin:0 0 6px">담당자 선택(선택)</div>
+          ${renderStaffSelect("createAssigneeSelect", "")}
         </div>
       </div>
+
       <div class="muted">※ 생성되면 기본 상태는 PENDING 입니다.</div>
     `;
+
         const footer = `
       <button class="btn-ghost" onclick="closeModal()">취소</button>
       <button id="btnCreateTask">생성</button>
     `;
+
         openModal("업무 생성", body, footer);
 
         $("#btnCreateTask").addEventListener("click", async ()=>{
             const notes = $("#createNotes").value || null;
-            const assigneeId = $("#createAssignee").value.trim() || null;
+            const assigneeId = $("#createAssigneeSelect").value.trim(); // "" 가능 (미지정 저장)
             try{
                 await createTask(defId, hour, notes, assigneeId);
                 await reloadAll(false);
@@ -896,48 +1057,73 @@
         state.patientId = patientId;
         state.date = date;
 
-        // 1) patient
+        try{
+            state.staffs = await API.getStaffs();
+            state.staffById = new Map((state.staffs ?? []).map(s => [s.id, s]));
+        }catch(e){
+            state.staffs = [];
+            state.staffById = new Map();
+            toast(e.message);
+        }
+
         state.patient = await API.getPatient(patientId);
 
-        // 2) defs
         state.defs = await API.getTaskDefinitions();
         state.defById = new Map(state.defs.map(d => [d.id, d]));
-        state.globalDefs = state.defs.filter(d => d.global);
-        state.nonGlobalDefs = state.defs.filter(d => !d.global);
+        state.fixedDefs = state.defs.filter(d => !!d.fixed);
+        state.notFixedDefs = state.defs.filter(d => !d.fixed);
 
-        // 3) tasks (for date)
         state.tasks = await API.getPatientDayTasks(patientId, date);
+
+        // ✅ NEW: definition-notes 로딩
+        try{
+            state.definitionNotes = await API.getDefinitionNotes(patientId, date);
+        }catch(e){
+            state.definitionNotes = [];
+            toast(e.message);
+        }
+        buildNoteMap();
 
         buildTaskMap();
         buildRows();
-
         renderPatient();
         renderTable();
     }
 
     async function reloadAll(showToast=true){
         if(!state.patientId || !state.date) return;
-        // patient는 큰 변화 없으니 defs+tasks만 새로고침해도 되지만 여기선 안전하게:
+
         try{
             if(showToast) toast("새로고침 중...");
+
             state.patient = await API.getPatient(state.patientId);
             state.defs = await API.getTaskDefinitions();
             state.defById = new Map(state.defs.map(d => [d.id, d]));
-            state.globalDefs = state.defs.filter(d => d.global);
-            state.nonGlobalDefs = state.defs.filter(d => !d.global);
+            state.fixedDefs = state.defs.filter(d => !!d.fixed);
+            state.notFixedDefs = state.defs.filter(d => !d.fixed);
             state.tasks = await API.getPatientDayTasks(state.patientId, state.date);
+
+            // ✅ NEW: definition-notes 재로딩
+            try{
+                state.definitionNotes = await API.getDefinitionNotes(state.patientId, state.date);
+            }catch(e){
+                state.definitionNotes = [];
+                toast(e.message);
+            }
+            buildNoteMap();
 
             buildTaskMap();
             buildRows();
             renderPatient();
             renderTable();
+
             if(showToast) toast("새로고침 완료");
         }catch(e){
             toast(e.message);
         }
     }
 
-    async function createTask(defId, hour, notes=null, assigneeId=null){
+    async function createTask(defId, hour, notes=null, assigneeId=""){
         const payload = {
             patientId: state.patientId,
             taskDefinitionId: defId,
@@ -953,7 +1139,16 @@
      * TABLE CLICK HANDLER
      ***********************/
     $("#chartTable").addEventListener("click", (e)=>{
-        const td = e.target.closest("td.cell");
+        // NOTE cell click
+        const noteTd = e.target.closest("td.note-cell[data-cell-kind='NOTE']");
+        if(noteTd){
+            const defId = noteTd.dataset.defId;
+            if(defId) openDefinitionNoteModal(defId);
+            return;
+        }
+
+        // TASK cell click
+        const td = e.target.closest("td.cell[data-cell-kind='TASK']");
         if(!td) return;
 
         const rowType = td.dataset.rowType;
@@ -961,15 +1156,10 @@
         const hour = Number(td.dataset.hour);
 
         if(rowType === "DEF"){
-            // DEF row: task exists? then show detail, else create
             const t = state.taskMap.get(`${defId}|${hour}`) ?? null;
-            if(t){
-                renderTaskDetail(t);
-            }else{
-                renderCreateTaskModal(defId, hour);
-            }
+            if(t) renderTaskDetail(t);
+            else renderCreateTaskModal(defId, hour);
         }else{
-            // BLANK row: show definition picker (exclude already in table)
             renderBlankRowPicker(hour);
         }
     });
@@ -978,15 +1168,14 @@
      * BOOTSTRAP
      ***********************/
     function setInputsFromState(){
+        $("#jwtInput").value = state.jwtToken ?? "";
         $("#patientIdInput").value = state.patientId ?? "";
         $("#dateInput").value = state.date ?? "";
     }
 
     async function boot(){
-        // URL에서 pid/date 먼저
         const { pid, date } = getPathParamsFromUrl();
 
-        // 기본값 (샘플 더미)
         const defaultPid = "e2da4625-7158-496f-9f84-9d26b7086ef2";
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -994,6 +1183,7 @@
         const dd = String(today.getDate()).padStart(2,"0");
         const defaultDate = `${yyyy}-${mm}-${dd}`;
 
+        state.jwtToken = localStorage.getItem("jwtToken") || "";
         state.patientId = pid || defaultPid;
         state.date = date || defaultDate;
 
@@ -1008,12 +1198,14 @@
     }
 
     $("#btnLoad").addEventListener("click", async ()=>{
+        readJwtFromInputAndPersist();
+
         const pid = $("#patientIdInput").value.trim();
         const date = $("#dateInput").value;
+
         if(!pid){ toast("patientId를 입력해줘"); return; }
         if(!date){ toast("date를 선택해줘"); return; }
 
-        // 주소도 목적대로 변경 (원하면)
         const newUrl = `/patients/${pid}/management-charts/${date}`;
         history.pushState({}, "", newUrl);
 
@@ -1025,10 +1217,12 @@
         }
     });
 
-    $("#btnReload").addEventListener("click", ()=> reloadAll(true));
+    $("#btnReload").addEventListener("click", ()=>{
+        readJwtFromInputAndPersist();
+        reloadAll(true);
+    });
 
     window.closeModal = closeModal;
-
     boot();
 </script>
 </body>

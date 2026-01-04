@@ -14,9 +14,6 @@ public record TaskInfoResponse(
         @Schema(example = "b9f5f9a1-3a3e-4a54-9cb2-41f04b9a2d11")
         UUID id,
 
-        @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
-        UUID hospitalId,
-
         @Schema(example = "e2da4625-7158-496f-9f84-9d26b7086ef2")
         UUID patientId,
 
@@ -37,6 +34,20 @@ public record TaskInfoResponse(
 
         @Schema(example = "체온 측정 후 기록")
         String taskNotes,
+
+        @Schema(
+                description = "공용(TaskDefinition 단위) 노트 ID",
+                example = "6fc17002-84c5-4d6b-a031-3f97e84f8495",
+                nullable = true
+        )
+        UUID patientDayTaskDefinitionNoteId,
+
+        @Schema(
+                description = "공용(TaskDefinition 단위) 노트 내용",
+                example = "체온 측정 후 2시간 뒤 재측정",
+                nullable = true
+        )
+        String definitionNote,
 
         @Schema(example = "214c43a5-5a9a-4c75-8f3f-669c10136e5a", nullable = true)
         UUID assigneeId,
@@ -59,10 +70,10 @@ public record TaskInfoResponse(
         @Schema(example = "2026-01-01T06:56:20.387760+00:00")
         OffsetDateTime completedAt
 ) {
+
     public static TaskInfoResponse from(Task e) {
         return new TaskInfoResponse(
                 e.getId(),
-                e.getHospital().getId(),
                 e.getPatient().getId(),
                 e.getTaskDefinition().getId(),
                 e.getTaskDate(),
@@ -70,6 +81,16 @@ public record TaskInfoResponse(
                 e.getStatus(),
                 e.getResult(),
                 e.getTaskNotes(),
+
+                // 공용 노트 연결
+                e.getPatientDayTaskDefinitionNote() == null
+                        ? null
+                        : e.getPatientDayTaskDefinitionNote().getId(),
+
+                e.getPatientDayTaskDefinitionNote() == null
+                        ? null
+                        : e.getPatientDayTaskDefinitionNote().getNote(),
+
                 e.getAssignee() == null ? null : e.getAssignee().getId(),
                 e.getCreatedBy().getId(),
                 e.getCreatedAt(),

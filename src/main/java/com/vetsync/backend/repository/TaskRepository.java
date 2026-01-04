@@ -19,4 +19,6 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findAllByHospital_IdAndPatient_Id(UUID hospitalId, UUID patientId);
 
     boolean existsByHospital_IdAndPatient_IdAndTaskDateAndTaskHourAndTaskDefinition_Id(UUID hospitalId, @NotNull UUID patientId, @NotNull LocalDate taskDate, @NotNull @Min(0) @Max(23) Integer taskHour, @NotNull UUID taskDefinitionId);
+
+    List<Task> findByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(UUID hospitalId, UUID patientId, LocalDate taskDate, UUID taskDefinitionId);
 }

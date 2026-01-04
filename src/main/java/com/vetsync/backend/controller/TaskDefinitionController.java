@@ -29,11 +29,9 @@ public class TaskDefinitionController {
 
     @GetMapping
     @Operation(
-            summary = "업무 정의 목록 조회 (글로벌 + 병원 전용)",
+            summary = "병원의 업무 정의 목록 ",
             description = """
                     해당 병원에서 사용 가능한 업무 정의(TaskDefinition) 목록을 조회합니다.
-                    - 글로벌(isGlobal=true)은 모두 포함
-                    - 병원 전용(isGlobal=false)은 hospitalId가 일치하는 것만 포함
                     """,
             responses = {
                     @ApiResponse(
@@ -49,17 +47,13 @@ public class TaskDefinitionController {
                                                       {
                                                         "id": "11111111-1111-1111-1111-111111111111",
                                                         "name": "체중",
-                                                        "global": true,
-                                                        "hospitalId": null,
-                                                        "valueType": "FLOAT",
+                                                        "fixed": true,
                                                         "description": "환자 체중 측정"
                                                       },
                                                       {
                                                         "id": "22222222-2222-2222-2222-222222222222",
                                                         "name": "심장약",
-                                                        "global": false,
-                                                        "hospitalId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                                                        "valueType": "STAFF_ID",
+                                                        "fixed": false,
                                                         "description": "병원 지정 약"
                                                       }
                                                     ]
