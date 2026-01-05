@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 @Schema(description = "환자 일일 메모 업서트 요청")
-public record PatientDayNoteUpsertRequest(
+public record PatientDayContextNoteUpsertRequest(
 
         @Schema(
                 description = "줄 번호 -> 내용",

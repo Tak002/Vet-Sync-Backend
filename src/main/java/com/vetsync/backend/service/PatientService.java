@@ -54,10 +54,10 @@ public class PatientService {
     }
 
     public void validatePatientAccessible(UUID hospitalId, @NotNull UUID patientId) {
-        if (!hospitalRepository.existsById(hospitalId)){
+        if (hospitalRepository.findById(hospitalId).isEmpty()) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);
         }
-        if (!patientRepository.existsByIdAndHospitalId(patientId, hospitalId)) {
+        if (patientRepository.findById(patientId).isEmpty()) {
             throw new CustomException(ErrorCode.PATIENT_NOT_FOUND);
         }
     }

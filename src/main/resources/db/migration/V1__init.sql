@@ -115,7 +115,7 @@ CREATE TABLE tasks (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE patient_day_notes (
+CREATE TABLE patient_day_context_notes (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
     patient_id uuid NOT NULL,
@@ -195,12 +195,12 @@ ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_created_by
         FOREIGN KEY (created_by) REFERENCES staffs (id);
 
-ALTER TABLE patient_day_notes
-    ADD CONSTRAINT fk_patient_day_notes_hospital
+ALTER TABLE patient_day_context_notes
+    ADD CONSTRAINT fk_patient_day_context_notes_hospital
         FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
 
-ALTER TABLE patient_day_notes
-    ADD CONSTRAINT fk_patient_day_notes_patient
+ALTER TABLE patient_day_context_notes
+    ADD CONSTRAINT fk_patient_day_context_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
 -- =========================================================
@@ -210,8 +210,8 @@ CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
     ON owners (hospital_id, phone)
     WHERE phone IS NOT NULL;
 
-CREATE UNIQUE INDEX uq_patient_day_notes_unique
-    ON patient_day_notes (hospital_id, patient_id, note_date);
+CREATE UNIQUE INDEX uq_patient_day_context_notes_unique
+    ON patient_day_context_notes (hospital_id, patient_id, note_date);
 
 CREATE UNIQUE INDEX uq_patient_hospital_owner_name
     ON patients (hospital_id, owner_id, name);
@@ -227,3 +227,6 @@ CREATE INDEX ix_pdtddn_day_lookup
 -- tasks에서 note FK 조인 최적화
 CREATE INDEX ix_tasks_pdtddn_id
     ON tasks (patient_day_task_definition_note_id);
+
+CREATE INDEX ix_pdcn_day_lookup
+    ON patient_day_context_notes (hospital_id, patient_id, note_date);
