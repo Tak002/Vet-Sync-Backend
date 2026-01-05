@@ -56,12 +56,12 @@ public class PatientDayTaskDefinitionNoteService {
         PatientDayTaskDefinitionNote already = patientDayTaskDefinitionNoteRepository.getByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(hospitalId, patientId, taskDate, request.taskDefinitionId());
         // 이미 note가 존재하고, note 내용이 비어있지 않은 경우에는 중복 생성 불가
         if(already != null){
-            if(!already.getNote().isBlank()){
+            if(!already.getContent().isBlank()){
                 throw new CustomException(ErrorCode.ENTITY_ALREADY_EXISTS);
             }
             // 이미 note가 존재하지만, note 내용이 비어있는 경우에는 update로 처리
             return updateDefinitionNote(hospitalId, patientId, taskDate, already.getId(),
-                    new PatientDayTaskDefinitionNoteUpdateRequest(request.note())
+                    new PatientDayTaskDefinitionNoteUpdateRequest(request.content())
             );
         }
 
@@ -70,7 +70,7 @@ public class PatientDayTaskDefinitionNoteService {
                 .patient(entityManager.getReference(Patient.class, patientId))
                 .taskDate(taskDate)
                 .taskDefinition(entityManager.getReference(TaskDefinition.class, request.taskDefinitionId()))
-                .note(request.note())
+                .content(request.content())
                 .build();
         return PatientDayTaskDefinitionNoteInfoResponse.from(patientDayTaskDefinitionNoteRepository.save(note));
     }
@@ -86,8 +86,8 @@ public class PatientDayTaskDefinitionNoteService {
         // 본래 id와 hospitalId 만으로도 조회가 가능하나, 추가로 patientId와 taskDate 조건을 넣어 안전성 강화
         PatientDayTaskDefinitionNote note = patientDayTaskDefinitionNoteRepository.findByIdAndHospital_IdAndPatient_IdAndTaskDate(noteId, hospitalId, patientId, taskDate)
                 .orElseThrow(()-> new CustomException(ErrorCode.TASK_DEFINITION_NOTE_NOT_FOUND));
-        if (request.note() != null) {
-            note.setNote(request.note().trim());
+        if (request.content() != null) {
+            note.setContent(request.content().trim());
         }
         return PatientDayTaskDefinitionNoteInfoResponse.from(note);
     }

@@ -14,6 +14,6 @@ public record PatientDayTaskDefinitionNoteCreateRequest(
 
         @Schema(description = "공용 노트 내용", example = "체온 측정 후 2시간 뒤 재측정")
         @NotNull
-        String note
+        String content
 ) {
 }

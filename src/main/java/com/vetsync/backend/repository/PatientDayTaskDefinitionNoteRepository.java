@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface PatientDayTaskDefinitionNoteRepository extends JpaRepository<PatientDayTaskDefinitionNote, Long> {
+public interface PatientDayTaskDefinitionNoteRepository extends JpaRepository<PatientDayTaskDefinitionNote, UUID> {
     List<PatientDayTaskDefinitionNote> getByHospital_IdAndPatient_IdAndTaskDate(UUID hospitalId, UUID patientId, LocalDate taskDate);
 
     PatientDayTaskDefinitionNote getByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(UUID hospitalId, UUID patientId, LocalDate taskDate, UUID taskDefinitionId);

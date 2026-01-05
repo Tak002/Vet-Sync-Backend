@@ -11,6 +11,6 @@ public record PatientDayTaskDefinitionNoteUpdateRequest(
                 example = "식욕 저하 지속 관찰"
         )
         @NotNull
-        String note
+        String content
 ) {
 }
