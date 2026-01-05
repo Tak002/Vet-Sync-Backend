@@ -18,6 +18,12 @@ public record PatientDayContextNoteResponse(
         @Schema(description = "수정 시각")
         OffsetDateTime updatedAt
 ) {
+    /**
+     * Create a PatientDayContextNoteResponse DTO from a PatientDayContextNote domain entity.
+     *
+     * @param e the source domain entity to convert
+     * @return a response DTO with id, content, and updatedAt copied from the given entity
+     */
     public static PatientDayContextNoteResponse from(PatientDayContextNote e) {
         return new PatientDayContextNoteResponse(
                 e.getId(),

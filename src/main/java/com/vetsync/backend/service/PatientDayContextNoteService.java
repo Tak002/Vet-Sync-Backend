@@ -25,6 +25,15 @@ public class PatientDayContextNoteService {
     private final PatientDayNoteRepository patientDayNoteRepository;
     private final EntityManager entityManager;
 
+    /**
+     * Retrieve the context note for a patient on a specific date.
+     *
+     * @param hospitalId UUID of the hospital the patient belongs to
+     * @param patientId  UUID of the patient
+     * @param date       the date of the note
+     * @return           a PatientDayContextNoteResponse representing the note for the given date
+     * @throws CustomException if no context note exists for the provided hospital, patient, and date (ErrorCode.NOT_FOUND)
+     */
     @Transactional(readOnly = true)
     public PatientDayContextNoteResponse get(UUID hospitalId, UUID patientId, LocalDate date) {
         patientService.validatePatientAccessible(hospitalId, patientId);
@@ -36,6 +45,17 @@ public class PatientDayContextNoteService {
         return PatientDayContextNoteResponse.from(note);
     }
 
+    /**
+     * Create or update the patient's contextual note for a specific date.
+     *
+     * Replaces the note's content with the request's content; if a note does not exist one is created.
+     *
+     * @param hospitalId the hospital UUID that owns the patient
+     * @param patientId  the patient UUID for whom the note is stored
+     * @param date       the date the note applies to
+     * @param req        upsert request whose `content` will replace the note's existing content
+     * @return           the saved PatientDayContextNote as a response DTO
+     */
     @Transactional
     public PatientDayContextNoteResponse upsert(UUID hospitalId, UUID patientId, LocalDate date, @Valid PatientDayContextNoteUpsertRequest req) {
         patientService.validatePatientAccessible(hospitalId, patientId);

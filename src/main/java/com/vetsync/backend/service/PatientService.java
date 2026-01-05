@@ -26,6 +26,15 @@ public class PatientService {
     private final EntityManager entityManager;
     private final HospitalRepository hospitalRepository;
 
+    /**
+     * Register a new patient for the given hospital and return the saved patient information.
+     *
+     * @param hospitalId the UUID of the hospital where the patient is registered
+     * @param staffId    the UUID of the staff member performing the registration
+     * @param req        the patient registration request containing owner, name, species, breed, and gender
+     * @return           a PatientInfoResponse representing the persisted patient
+     * @throws CustomException if a patient with the same hospital, owner, and name already exists (ErrorCode.ENTITY_ALREADY_EXISTS)
+     */
     @Transactional
     public PatientInfoResponse registerPatient(
             UUID hospitalId,
@@ -53,6 +62,14 @@ public class PatientService {
         return  PatientInfoResponse.from(saved);
     }
 
+    /**
+     * Verifies that the hospital and patient exist and are accessible.
+     *
+     * @param hospitalId the UUID of the hospital to validate
+     * @param patientId  the UUID of the patient to validate
+     * @throws CustomException with ErrorCode.HOSPITAL_NOT_FOUND if the hospital does not exist
+     * @throws CustomException with ErrorCode.PATIENT_NOT_FOUND  if the patient does not exist
+     */
     public void validatePatientAccessible(UUID hospitalId, @NotNull UUID patientId) {
         if (hospitalRepository.findById(hospitalId).isEmpty()) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);

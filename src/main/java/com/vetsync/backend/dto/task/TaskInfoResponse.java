@@ -71,6 +71,15 @@ public record TaskInfoResponse(
         OffsetDateTime completedAt
 ) {
 
+    /**
+     * Create a TaskInfoResponse representing the provided Task.
+     *
+     * Fields that depend on optional associations (for example, patientDayTaskDefinitionNote or assignee)
+     * will be null when the corresponding related entity is absent.
+     *
+     * @param e the source Task entity to convert
+     * @return a TaskInfoResponse populated from the provided Task
+     */
     public static TaskInfoResponse from(Task e) {
         return new TaskInfoResponse(
                 e.getId(),

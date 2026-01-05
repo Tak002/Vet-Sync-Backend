@@ -46,7 +46,16 @@ public class PatientDayTaskDefinitionNoteService {
         return patientDayTaskDefinitionNoteRepository.getByHospital_IdAndPatient_IdAndTaskDateAndTaskDefinition_Id(hospitalId, patientId, taskDate, taskDefinitionId);
     }
 
-    // definition note 생성 및 관련 task들과 연결
+    /**
+     * Create a patient day task definition note for the given hospital, patient, date, and task definition, or fill an existing empty note.
+     *
+     * @param hospitalId the hospital UUID
+     * @param patientId  the patient UUID
+     * @param taskDate   the date of the task
+     * @param request    create request containing the taskDefinitionId and content
+     * @return           a response representing the created or updated PatientDayTaskDefinitionNote
+     * @throws CustomException with ErrorCode.ENTITY_ALREADY_EXISTS if a non-empty note for the same hospital, patient, date, and task definition already exists
+     */
     @Transactional
     PatientDayTaskDefinitionNoteInfoResponse createDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, PatientDayTaskDefinitionNoteCreateRequest request) {
         // 요청 값 검증
@@ -77,7 +86,21 @@ public class PatientDayTaskDefinitionNoteService {
 
     // definition note 수정
     // ""(빈 문자열)로 수정하는 것도 허용
-    // null로 수정하는 것은 허용하지 않음 (변경 없음 정책)
+    /**
+     * Updates the content of an existing patient day task definition note identified by its ID and context.
+     *
+     * If the request's `content` is `null`, the note's content is left unchanged. If non-null, the value is trimmed
+     * and stored (an empty string is allowed). The method validates patient access and that the note exists for the
+     * specified hospital, patient, and task date.
+     *
+     * @param hospitalId the hospital's UUID
+     * @param patientId the patient's UUID
+     * @param taskDate the task date of the note
+     * @param noteId the UUID of the note to update
+     * @param request the update request containing the new `content` (may be `null` to indicate no change)
+     * @return a response DTO representing the updated note
+     * @throws CustomException with ErrorCode.TASK_DEFINITION_NOTE_NOT_FOUND if no matching note is found
+     */
     @Transactional
     public  PatientDayTaskDefinitionNoteInfoResponse updateDefinitionNote(UUID hospitalId, UUID patientId, LocalDate taskDate, UUID noteId, PatientDayTaskDefinitionNoteUpdateRequest request) {
         patientService.validatePatientAccessible(hospitalId, patientId);

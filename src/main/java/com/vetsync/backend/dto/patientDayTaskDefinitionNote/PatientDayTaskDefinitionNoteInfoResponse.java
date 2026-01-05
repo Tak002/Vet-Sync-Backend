@@ -18,6 +18,12 @@ public record PatientDayTaskDefinitionNoteInfoResponse(
         String content
 ) {
 
+    /**
+     * Create a PatientDayTaskDefinitionNoteInfoResponse from a PatientDayTaskDefinitionNote entity.
+     *
+     * @param entity the source PatientDayTaskDefinitionNote to convert
+     * @return a response containing the entity's id, the associated taskDefinition id, and the note content
+     */
     public static PatientDayTaskDefinitionNoteInfoResponse from(PatientDayTaskDefinitionNote entity) {
         return new PatientDayTaskDefinitionNoteInfoResponse(
                 entity.getId(),
