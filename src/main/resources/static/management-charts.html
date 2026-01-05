@@ -22,14 +22,13 @@
             --shadow: 0 10px 25px rgba(0,0,0,.35);
             --radius: 14px;
 
-            /* ✅ 축소해서 한눈에 보이도록 폭 줄임 */
+            /* sticky column widths */
             --col1: 150px;   /* Definition */
-            --col2: 170px;   /* 공용노트(줄임) */
-            --colMemo: 250px;/* 일일 메모(줄임) */
-
+            --col2: 170px;   /* Definition Note (공용노트) - 줄임 */
             --col2-left: var(--col1);
-        }
 
+            --colCtx: 240px; /* 일일메모 컬럼 폭 */
+        }
         *{box-sizing:border-box}
         body{
             margin:0;
@@ -39,8 +38,7 @@
             radial-gradient(1200px 800px at 90% 40%, #1a2a54 0%, rgba(26,42,84,0) 60%),
             var(--bg);
         }
-
-        .app{max-width:1800px;margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+        .app{max-width:1600px;margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:14px}
         .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
         .card{
             background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
@@ -48,7 +46,6 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
         }
-
         .patient{flex:1;padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px}
         .patient h1{margin:0;font-size:18px;letter-spacing:.2px}
         .meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -65,7 +62,6 @@
         .actions{width:320px;padding:14px;display:flex;flex-direction:column;gap:10px}
         .actions h2{margin:0;font-size:14px;color:var(--muted);font-weight:600}
         .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-
         input[type="text"], input[type="date"], input[type="password"]{
             width:100%;
             background: rgba(0,0,0,.22);
@@ -79,7 +75,6 @@
             border-color: rgba(160,200,255,.45);
             box-shadow: 0 0 0 3px rgba(80,140,255,.18);
         }
-
         button{
             cursor:pointer;
             background: rgba(90,150,255,.18);
@@ -109,16 +104,14 @@
         .dot.confirm{ background: var(--confirm); }
         .dot.completed{ background: var(--completed); }
 
-        /* ✅ 화면 확대비율을 줄여서 한눈에 보이도록(전체 스케일 다운) */
+        .table-wrap{padding:12px;overflow:auto;border-radius: var(--radius)}
         .table-zoom{
-            transform: scale(.88);
+            transform: scale(.86);
             transform-origin: top left;
-            width: calc(100% / .88);
+            width: calc(100% / .86);
         }
 
-        .table-wrap{padding:12px;overflow:auto;border-radius: var(--radius)}
-        table{border-collapse:separate;border-spacing:0;min-width:1600px;width:100%;color:var(--text);font-size:12px}
-
+        table{border-collapse:separate;border-spacing:0;min-width:1500px;width:100%;color:var(--text);font-size:12px}
         thead th{
             position: sticky; top:0; z-index:6;
             background: rgba(12,23,44,.95);
@@ -128,11 +121,10 @@
         th, td{
             border-right:1px solid rgba(255,255,255,.06);
             border-bottom:1px solid rgba(255,255,255,.06);
-            padding:6px 6px;
-            text-align:center;vertical-align:middle;white-space:nowrap
+            padding:8px 8px;text-align:center;vertical-align:middle;white-space:nowrap
         }
 
-        /* Sticky columns: 1) Definition 2) 공용노트 */
+        /* Sticky columns: 1) Definition 2) Definition Note */
         th:first-child, td:first-child{
             position: sticky; left:0; z-index:5;
             background: rgba(12,23,44,.95);
@@ -152,8 +144,7 @@
             cursor:pointer;
             background: rgba(0,0,0,.12);
             transition:.12s ease;
-            min-width:48px; max-width:72px;
-            overflow:hidden; text-overflow:ellipsis;
+            min-width:48px; max-width:78px; overflow:hidden; text-overflow:ellipsis;
         }
         td.cell:hover{
             outline:2px solid rgba(140,190,255,.45);
@@ -165,7 +156,6 @@
         td.cell.inprogress{ background: color-mix(in oklab, var(--inprogress) 82%, black 18%); }
         td.cell.confirm{ background: color-mix(in oklab, var(--confirm) 82%, black 18%); }
         td.cell.completed{ background: color-mix(in oklab, var(--completed) 82%, black 18%); }
-
         td.cell .result{
             display:block;font-size:11px;line-height:1.2;max-height:2.4em;
             overflow:hidden;text-overflow:ellipsis;padding:0 2px
@@ -176,6 +166,7 @@
         .row-title .name{font-weight:700}
         .row-title .desc{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 
+        /* Definition-note cell */
         td.note-cell{
             cursor:pointer;
             background: rgba(0,0,0,.10);
@@ -205,37 +196,47 @@
             color: rgba(232,238,252,.65);
         }
 
-        /* ✅ 일일 메모 */
-        td.ctx-cell{
-            background: rgba(0,0,0,.10);
-            padding:6px;
-            min-width: var(--colMemo);
-            max-width: var(--colMemo);
+        /* Day-context memo (right) */
+        th.ctx-head, td.ctx-cell{
+            min-width: var(--colCtx);
+            max-width: var(--colCtx);
             text-align:left;
-            white-space:normal;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
         }
-        td.ctx-cell input{
-            width:100%;
-            background: rgba(0,0,0,.18);
-            border:1px solid rgba(255,255,255,.10);
-            color: var(--text);
-            padding:8px 10px;
-            border-radius: 10px;
-            outline:none;
-            font-size:12px;
-        }
-        td.ctx-cell input:focus{
-            border-color: rgba(160,200,255,.45);
-            box-shadow: 0 0 0 3px rgba(80,140,255,.18);
-        }
-
-        /* ✅ 헤더 아래(제목~첫줄 사이) updatedAt 표시용 */
-        .ctx-updated{
+        th.ctx-head .ctx-title{font-weight:800}
+        th.ctx-head .ctx-updated{
             display:block;
-            margin-top:6px;
+            margin-top:4px;
             font-size:10px;
-            color: rgba(232,238,252,.65);
-            font-weight:500;
+            color: rgba(232,238,252,.70);
+            font-weight:600;
+        }
+        td.ctx-cell{
+            cursor:pointer;
+            background: rgba(0,0,0,.08);
+            transition:.12s ease;
+        }
+        td.ctx-cell:hover{
+            outline:2px solid rgba(140,190,255,.45);
+            outline-offset:-2px;
+            filter: brightness(1.07);
+        }
+        td.ctx-cell .ctx-text{
+            display:block;
+            font-size:11px;
+            color: rgba(232,238,252,.92);
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            max-width: calc(var(--colCtx) - 16px);
+        }
+        td.ctx-cell .ctx-sub{
+            display:block;
+            margin-top:3px;
+            font-size:10px;
+            color: rgba(232,238,252,.60);
         }
 
         .toast{
@@ -295,6 +296,7 @@
             display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;align-items:center
         }
         .muted{color: var(--muted);font-size:12px}
+        .field .muted{margin:0 0 6px}
 
         @media (max-width: 980px){
             .topbar{flex-direction:column;}
@@ -304,13 +306,13 @@
 
             :root{
                 --col1: 150px;
-                --col2: 160px;
-                --colMemo: 230px;
+                --col2: 150px;
+                --colCtx: 210px;
             }
 
             .table-zoom{
-                transform: scale(.82);
-                width: calc(100% / .82);
+                transform: scale(.80);
+                width: calc(100% / .80);
             }
         }
     </style>
@@ -354,7 +356,8 @@
             </div>
 
             <div class="muted">
-                경로: <code>/tasks/patients/{patientId}/{taskDate}</code>
+                경로: <code>/tasks/patients/{patientId}/{taskDate}</code><br/>
+                일일메모: <code>/patients/{patientId}/day-context-notes/{date}</code>
             </div>
 
             <div class="legend">
@@ -368,7 +371,7 @@
             <div class="help">
                 • Task 셀 클릭 → Task 생성/상세<br/>
                 • 공용 노트 셀 클릭 → 공용 노트 생성/수정<br/>
-                • 우측 메모: 라인별 입력 후 <b>Enter</b> 또는 <b>포커스 아웃</b> 시 자동 저장(PUT)<br/>
+                • 일일 메모 셀 클릭 → 해당 줄 메모 수정(저장 시 PUT 업서트)<br/>
                 • PATCH 규칙: <b>null=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
             </div>
         </div>
@@ -400,10 +403,7 @@
      * CONFIG
      ***********************/
     const API_BASE = "";
-
-    // ✅ 0~23: AM0..AM11, PM12..PM23
     const HOURS = Array.from({length: 24}, (_, i) => i);
-    const hourLabel = (h) => (h < 12 ? `AM${h}` : `PM${h-12}`);
     const STATUS_LIST = ["PENDING","IN_PROGRESS","CONFIRM_WAITING","COMPLETED"];
 
     /***********************
@@ -428,10 +428,11 @@
         tasks: [],
 
         definitionNotes: [],
-        noteByDefId: new Map(),
+        noteByDefId: new Map(),   // key: taskDefinitionId -> note DTO (content 필드)
 
-        dayContextNote: null,   // {id, content, updatedAt}
-        ctxContent: new Map(),  // key: lineNo(number) -> text
+        // ✅ NEW: day-context-notes
+        dayContextNote: null,     // { id, content, updatedAt }
+        dayContextContent: {},    // Map 형태로 들고 있다가 PUT 시 전송
     };
 
     /***********************
@@ -497,63 +498,67 @@
         return text ? JSON.parse(text) : null;
     }
 
-    /***********************
-     * ✅ Day Context Notes helpers
-     ***********************/
-    function buildCtxContentMapFromResponse(resp){
-        const m = new Map();
-        const obj = resp?.content ?? {};
-        for(const [k,v] of Object.entries(obj)){
-            const lineNo = Number(k);
-            if(Number.isFinite(lineNo)){
-                m.set(lineNo, (v ?? "").toString());
-            }
+    function staffLabelById(id){
+        if(!id) return "(미지정)";
+        const s = state.staffById.get(id);
+        if(!s) return id;
+        return `${s.name} (${s.role}${s.isActive ? "" : " · 비활성"})`;
+    }
+
+    function renderStaffSelect(selectId, selectedStaffId){
+        const list = (state.staffs ?? []).slice()
+            .sort((a,b)=> (b.isActive - a.isActive) || (a.name ?? "").localeCompare(b.name ?? ""));
+
+        const options = [
+            `<option value="">(미지정으로 저장)</option>`,
+            ...list.map(s => {
+                const selected = (s.id === selectedStaffId) ? "selected" : "";
+                const inactive = s.isActive ? "" : " [비활성]";
+                return `<option value="${escapeHtml(s.id)}" ${selected}>${escapeHtml(s.name)} · ${escapeHtml(s.role)}${inactive}</option>`;
+            })
+        ].join("");
+
+        return `<select id="${escapeHtml(selectId)}">${options}</select>`;
+    }
+
+    function renderStatusSelect(selectId, selectedStatus){
+        return `<select id="${escapeHtml(selectId)}">${
+            STATUS_LIST.map(st => `<option value="${escapeHtml(st)}" ${st===selectedStatus?"selected":""}>${escapeHtml(st)}</option>`).join("")
+        }</select>`;
+    }
+
+    /**
+     * PATCH payload 규칙:
+     * - null  : 변경 없음(필드 미포함으로 보냄)
+     * - ""    : 비우기(미지정/삭제)
+     * - "..." : 값 설정
+     */
+    function buildPatchPayloadWithEmptyAllowed(originalTask, cur){
+        const payload = {};
+
+        const origAssignee = (originalTask.assigneeId ?? "");
+        const curAssignee = (cur.assigneeId ?? "");
+        if(curAssignee !== origAssignee){
+            payload.assigneeId = curAssignee; // "" 가능
         }
-        return m;
+
+        const origNotes = (originalTask.taskNotes ?? "");
+        const curNotes = (cur.taskNotes ?? "");
+        if(curNotes !== origNotes){
+            payload.taskNotes = curNotes; // "" 가능
+        }
+
+        const origResult = (originalTask.result ?? "");
+        const curResult = (cur.result ?? "");
+        if(curResult !== origResult){
+            payload.result = curResult; // "" 가능
+        }
+
+        return payload;
     }
 
-    function getLineNoByRowIndex(rowIdx){
-        return rowIdx + 1; // 1-based
-    }
-
-    function updateCtxUpdatedAtHeader(){
-        const el = document.querySelector("[data-ctx-updated-at='1']");
-        if(!el) return;
-        el.textContent = state.dayContextNote?.updatedAt
-            ? `updatedAt: ${state.dayContextNote.updatedAt}`
-            : "updatedAt: -";
-    }
-
-    let ctxSaveTimer = null;
-    let ctxSaveInFlight = false;
-
-    function scheduleSaveDayContextNotes(immediate=false){
-        clearTimeout(ctxSaveTimer);
-        ctxSaveTimer = setTimeout(async ()=>{
-            if(ctxSaveInFlight) return;
-            if(!state.patientId || !state.date) return;
-
-            try{
-                ctxSaveInFlight = true;
-
-                const payloadContent = {};
-                const keys = Array.from(state.ctxContent.keys()).sort((a,b)=>a-b);
-                for(const k of keys){
-                    payloadContent[k] = (state.ctxContent.get(k) ?? "").toString();
-                }
-
-                const updated = await API.upsertDayContextNotes(state.patientId, state.date, { content: payloadContent });
-                state.dayContextNote = updated;
-                state.ctxContent = buildCtxContentMapFromResponse(updated);
-
-                updateCtxUpdatedAtHeader();
-                toast("일일 메모 저장 완료");
-            }catch(e){
-                toast(e.message);
-            }finally{
-                ctxSaveInFlight = false;
-            }
-        }, immediate ? 0 : 450);
+    function safeCloneJson(obj){
+        return JSON.parse(JSON.stringify(obj ?? {}));
     }
 
     /***********************
@@ -570,16 +575,18 @@
         patchTask: (taskId, payload) => apiFetch(`/tasks/${taskId}`, { method:"PATCH", body: JSON.stringify(payload) }),
         patchTaskStatus: (taskId, status) => apiFetch(`/tasks/${taskId}/status`, { method:"PATCH", body: JSON.stringify({ status }) }),
 
+        // ✅ definition-notes (content 필드)
         getDefinitionNotes: (patientId, taskDate) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes`, { method:"GET" }),
         createDefinitionNote: (patientId, taskDate, payload) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes`, { method:"POST", body: JSON.stringify(payload) }),
         patchDefinitionNote: (patientId, taskDate, noteId, payload) => apiFetch(`/tasks/patients/${patientId}/${taskDate}/definition-notes/${noteId}`, { method:"PATCH", body: JSON.stringify(payload) }),
 
-        getDayContextNotes: (patientId, date) => apiFetch(`/patients/${patientId}/day-context-notes/${date}`, { method:"GET" }),
-        upsertDayContextNotes: (patientId, date, payload) => apiFetch(`/patients/${patientId}/day-context-notes/${date}`, { method:"PUT", body: JSON.stringify(payload) }),
+        // ✅ day-context-notes
+        getDayContextNote: (patientId, date) => apiFetch(`/patients/${patientId}/day-context-notes/${date}`, { method:"GET" }),
+        putDayContextNote: (patientId, date, payload) => apiFetch(`/patients/${patientId}/day-context-notes/${date}`, { method:"PUT", body: JSON.stringify(payload) }),
     };
 
     /***********************
-     * RENDER: PATIENT CARD (그대로)
+     * RENDER: PATIENT CARD
      ***********************/
     function renderPatient(){
         const p = state.patient;
@@ -647,15 +654,34 @@
         }
     }
 
+    function normalizeContextContent(raw){
+        // 서버는 Map<Integer,String> 이지만 JSON에서는 key가 문자열로 올 수도 있음
+        const out = {};
+        const src = raw ?? {};
+        for(const k of Object.keys(src)){
+            const nk = Number(k);
+            if(Number.isFinite(nk)) out[nk] = (src[k] ?? "");
+        }
+        return out;
+    }
+
+    function updateCtxUpdatedAtHeader(){
+        const el = document.querySelector("[data-ctx-updated-at='1']");
+        if(!el) return;
+        const ua = state.dayContextNote?.updatedAt ?? null;
+        el.textContent = ua ? `updatedAt: ${ua}` : "updatedAt: -";
+    }
+
     /***********************
      * RENDER TABLE
-     * ✅ 1) 처치시간 열 제거
-     * ✅ 2) 시간 헤더: AM0..AM11 / PM0..PM11
-     * ✅ 3) updatedAt: 일일메모 헤더 아래 1회만 표시
      ***********************/
     function renderTable(){
         const table = $("#chartTable");
         if(!state.date){ table.innerHTML = ""; return; }
+
+        // ✅ hour 헤더: AM0..AM11 / PM0..PM11
+        const amHeads = Array.from({length:12},(_,i)=>`<th>AM${i}</th>`).join("");
+        const pmHeads = Array.from({length:12},(_,i)=>`<th>PM${i}</th>`).join("");
 
         const thead = `
       <thead>
@@ -665,16 +691,16 @@
           <th colspan="12">AM</th>
           <th colspan="12">PM</th>
           <th>Info</th>
-          <th>
-            <div>일일 메모</div>
+          <th class="ctx-head">
+            <span class="ctx-title">일일 메모</span>
             <span class="ctx-updated" data-ctx-updated-at="1"></span>
           </th>
         </tr>
         <tr>
           <th></th>
           <th></th>
-          ${Array.from({length:12},(_,i)=>`<th>${escapeHtml(`AM${i}`)}</th>`).join("")}
-          ${Array.from({length:12},(_,i)=>`<th>${escapeHtml(`PM${i}`)}</th>`).join("")}
+          ${amHeads}
+          ${pmHeads}
           <th></th>
           <th></th>
         </tr>
@@ -682,6 +708,7 @@
     `;
 
         const rowsHtml = state.rows.map((r, rowIdx)=>{
+
             const left = r.type==="DEF"
                 ? (() => {
                     const def = state.defById.get(r.defId);
@@ -705,6 +732,7 @@
           </td>
         `;
 
+            // ✅ 공용 노트(정의별)
             const noteCell = (() => {
                 if(r.type !== "DEF"){
                     return `<td class="note-cell muted" title="공백 행은 공용노트를 가질 수 없습니다.">-</td>`;
@@ -724,16 +752,16 @@
         `;
             })();
 
-            // ✅ hour cells (0..23 그대로, 헤더만 AM0..PM11로 보임)
+            // ✅ 시간 셀: 0..23 그대로(AM0~11, PM0~11 헤더만 바뀜)
             const hourCells = HOURS.map(h=>{
                 let task = null;
                 if(r.type==="DEF") task = state.taskMap.get(`${r.defId}|${h}`) ?? null;
 
                 const cls = task ? statusToClass(task.status) : "empty";
-                const labelTop = task?.result ? escapeHtml(task.result) : "—";
+                const labelTop = task?.result ? escapeHtml(task.result) : ""; // ✅ 없으면 빈칸
                 const small = task
                     ? `<span class="sub">${escapeHtml(task.status)}</span>`
-                    : `<span class="sub">${escapeHtml(hourLabel(h))}</span>`;
+                    : ``; // ✅ 빈 셀에 AM0 같은 표시 제거
 
                 return `
           <td class="cell ${cls}"
@@ -757,16 +785,16 @@
                 return `<td class="muted">빈 행(클릭→항목 선택)</td>`;
             })();
 
-            const lineNo = getLineNoByRowIndex(rowIdx);
-            const curText = state.ctxContent.get(lineNo) ?? "";
+            // ✅ 일일 메모(라인별): rowIdx+1 라인을 사용
+            const lineNo = rowIdx + 1;
+            const ctxText = (state.dayContextContent?.[lineNo] ?? "");
+            const ctxSub = `line: ${lineNo}`;
             const ctxCell = `
-        <td class="ctx-cell" data-cell-kind="CTX" data-line-no="${lineNo}">
-          <input
-            type="text"
-            class="ctx-input"
-            data-line-no="${lineNo}"
-            placeholder="${escapeHtml(`${lineNo}번 줄 메모`)}"
-            value="${escapeHtml(curText)}" />
+        <td class="ctx-cell"
+            data-cell-kind="CTX"
+            data-line-no="${lineNo}">
+          <span class="ctx-text" title="${escapeHtml(ctxText)}">${escapeHtml(ctxText || "—")}</span>
+          <span class="ctx-sub">${escapeHtml(ctxSub)}</span>
         </td>
       `;
 
@@ -774,15 +802,11 @@
         }).join("");
 
         table.innerHTML = thead + `<tbody>${rowsHtml}</tbody>`;
-
-        // ✅ 헤더에 updatedAt 1회만 표시
         updateCtxUpdatedAtHeader();
     }
 
     /***********************
-     * MODAL (기존 코드 그대로 유지 가능)
-     * - 여기서는 표 개선과 무관하므로 생략해도 되지만,
-     *   기존 파일에 붙일 때는 원래 modal 관련 함수 그대로 두면 됨.
+     * MODALS
      ***********************/
     function openModal(title, bodyHtml, footerHtml){
         $("#modalTitle").textContent = title;
@@ -794,55 +818,374 @@
     $("#modalClose").addEventListener("click", closeModal);
     $("#overlay").addEventListener("click", (e)=>{ if(e.target === $("#overlay")) closeModal(); });
 
-    // NOTE: 아래 모달 함수들은 기존 코드 그대로 사용하면 됨(생략 없음).
-    // ---- 기존 renderTaskDetail, openDefinitionNoteModal, renderBlankRowPicker, renderCreateTaskModal 등 ----
-    // 이 샘플에선 길이 때문에 그대로 붙여넣지 않았고,
-    // 너는 기존 파일의 모달/태스크 로직을 그대로 유지하면 됨.
+    // ✅ definition-note modal (content 필드)
+    function openDefinitionNoteModal(defId){
+        const def = state.defById.get(defId);
+        const existing = state.noteByDefId.get(defId) ?? null;
 
-    /***********************
-     * TABLE INPUT HANDLER (일일메모 저장)
-     ***********************/
-    $("#chartTable").addEventListener("input", (e)=>{
-        const inp = e.target.closest("input.ctx-input");
-        if(!inp) return;
-        const lineNo = Number(inp.dataset.lineNo);
-        if(!Number.isFinite(lineNo)) return;
+        const body = `
+      <div class="help">
+        <b>${escapeHtml(def?.name ?? defId)}</b> · ${escapeHtml(state.date)} 공용 노트
+        <div class="muted" style="margin-top:6px">
+          ${existing ? `noteId: ${escapeHtml(existing.id)}` : "아직 공용 노트가 없습니다. 저장하면 생성됩니다."}
+        </div>
+      </div>
 
-        state.ctxContent.set(lineNo, inp.value ?? "");
-        scheduleSaveDayContextNotes(false);
-    });
+      <div class="field">
+        <div class="muted">공용 노트(content) (지우려면 "" 저장)</div>
+        <textarea id="defNoteTextarea" placeholder="예: 체온 측정 후 2시간 뒤 재측정">${escapeHtml(existing?.content ?? "")}</textarea>
+      </div>
+    `;
 
-    $("#chartTable").addEventListener("keydown", (e)=>{
-        const inp = e.target.closest("input.ctx-input");
-        if(!inp) return;
-        if(e.key === "Enter"){
-            e.preventDefault();
-            const lineNo = Number(inp.dataset.lineNo);
-            state.ctxContent.set(lineNo, inp.value ?? "");
-            scheduleSaveDayContextNotes(true);
-            inp.blur();
-        }
-    });
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">닫기</button>
+      <button id="btnSaveDefNote" class="btn-success">저장</button>
+    `;
 
-    $("#chartTable").addEventListener("focusout", (e)=>{
-        const inp = e.target.closest("input.ctx-input");
-        if(!inp) return;
-        const lineNo = Number(inp.dataset.lineNo);
-        if(!Number.isFinite(lineNo)) return;
+        openModal("TaskDefinition 공용 노트", body, footer);
 
-        state.ctxContent.set(lineNo, inp.value ?? "");
-        scheduleSaveDayContextNotes(false);
-    });
+        $("#btnSaveDefNote").addEventListener("click", async ()=>{
+            try{
+                const noteText = ($("#defNoteTextarea").value ?? "");
+                const payload = { content: noteText };
 
-    /***********************
-     * REMAINING: 기존 로딩/새로고침 흐름 (표 개선 반영)
-     ***********************/
-    function setInputsFromState(){
-        $("#jwtInput").value = state.jwtToken ?? "";
-        $("#patientIdInput").value = state.patientId ?? "";
-        $("#dateInput").value = state.date ?? "";
+                if(existing?.id){
+                    await API.patchDefinitionNote(state.patientId, state.date, existing.id, payload);
+                    toast("공용 노트 수정 완료");
+                }else{
+                    await API.createDefinitionNote(state.patientId, state.date, {
+                        taskDefinitionId: defId,
+                        content: noteText
+                    });
+                    toast("공용 노트 생성 완료");
+                }
+
+                await reloadAll(false);
+                closeModal();
+            }catch(e){
+                toast(e.message);
+            }
+        });
     }
 
+    // ✅ day-context-note line modal
+    function openDayContextLineModal(lineNo){
+        const existingText = (state.dayContextContent?.[lineNo] ?? "");
+
+        const body = `
+      <div class="help">
+        <b>${escapeHtml(state.date)}</b> · 일일 메모<br/>
+        <span class="muted">line: ${escapeHtml(lineNo)} / noteId: ${escapeHtml(state.dayContextNote?.id ?? "-")}</span>
+      </div>
+
+      <div class="field">
+        <div class="muted">내용(빈 문자열 "" 저장 가능)</div>
+        <textarea id="ctxLineTextarea" placeholder="예: 금식 중, 약 복용 주의">${escapeHtml(existingText)}</textarea>
+      </div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">닫기</button>
+      <button id="btnSaveCtxLine" class="btn-success">저장</button>
+    `;
+
+        openModal("일일 메모 편집", body, footer);
+
+        $("#btnSaveCtxLine").addEventListener("click", async ()=>{
+            try{
+                const text = ($("#ctxLineTextarea").value ?? "");
+                const next = safeCloneJson(state.dayContextContent);
+                // ""도 저장 허용. 완전 삭제(키 제거) 원하면 여기서 조건처리 가능
+                next[lineNo] = text;
+
+                const res = await API.putDayContextNote(state.patientId, state.date, { content: next });
+                state.dayContextNote = res;
+                state.dayContextContent = normalizeContextContent(res?.content ?? {});
+                toast("일일 메모 저장 완료");
+                renderTable();
+                closeModal();
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
+
+    /***********************
+     * TASK MODALS (그대로 유지)
+     ***********************/
+    function renderTaskDetail(task){
+        const def = state.defById.get(task.taskDefinitionId);
+
+        const defNote = state.noteByDefId.get(task.taskDefinitionId) ?? null;
+        const defNoteId = defNote?.id ?? null;
+        const defNoteText = defNote?.content ?? "";
+
+        const body = `
+      <div class="help">
+        저장 규칙: <b>null(미포함)=변경없음</b>, <b>""=값 비우기(미지정/삭제)</b><br/>
+        • 정보(PATCH /tasks/{id}) / 상태(PATCH /tasks/{id}/status)
+      </div>
+
+      <div class="grid2">
+        <div class="kv"><div class="k">Task ID</div><div class="v">${escapeHtml(task.id)}</div></div>
+        <div class="kv"><div class="k">정의</div><div class="v">${escapeHtml(def?.name ?? task.taskDefinitionId)}</div></div>
+        <div class="kv"><div class="k">날짜/시간</div><div class="v">${escapeHtml(task.taskDate)} / ${escapeHtml(task.taskHour)}시</div></div>
+        <div class="kv"><div class="k">환자</div><div class="v">${escapeHtml(task.patientId)}</div></div>
+        <div class="kv"><div class="k">생성자</div><div class="v">${escapeHtml(task.createdBy)}</div></div>
+        <div class="kv"><div class="k">현재 담당자</div><div class="v">${escapeHtml(staffLabelById(task.assigneeId))}</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="kv"><div class="k">Definition Note ID</div><div class="v">${escapeHtml(defNoteId ?? "-")}</div></div>
+        <div class="kv"><div class="k">Definition Note</div><div class="v">${escapeHtml(defNoteText || "-")}</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <div class="muted">상태(status)</div>
+          ${renderStatusSelect("detailStatusSelect", task.status)}
+          <div class="muted" style="margin-top:6px">※ 상태 저장은 별도 버튼</div>
+        </div>
+
+        <div class="field">
+          <div class="muted">담당자(assigneeId) (""=미지정)</div>
+          ${renderStaffSelect("detailAssigneeSelect", task.assigneeId ?? "")}
+          <div class="muted" style="margin-top:6px">현재: ${escapeHtml(task.assigneeId ?? "(null)")} / 표시: ${escapeHtml(staffLabelById(task.assigneeId))}</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <div class="muted">업무 메모(taskNotes) (지우면 "" 전송)</div>
+          <textarea id="detailNotes" placeholder="업무 메모를 입력">${escapeHtml(task.taskNotes ?? "")}</textarea>
+        </div>
+        <div class="field">
+          <div class="muted">결과(result) (지우면 "" 전송)</div>
+          <textarea id="detailResult" placeholder="결과를 입력">${escapeHtml(task.result ?? "")}</textarea>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="kv"><div class="k">createdAt</div><div class="v">${escapeHtml(task.createdAt)}</div></div>
+        <div class="kv"><div class="k">updatedAt</div><div class="v">${escapeHtml(task.updatedAt)}</div></div>
+        <div class="kv"><div class="k">startedAt</div><div class="v">${escapeHtml(task.startedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">confirmRequestedAt</div><div class="v">${escapeHtml(task.confirmRequestedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">completedAt</div><div class="v">${escapeHtml(task.completedAt ?? "-")}</div></div>
+        <div class="kv"><div class="k">status</div><div class="v">${escapeHtml(task.status)}</div></div>
+      </div>
+
+      <div class="help" id="detailDiffHint">변경사항 없음</div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">닫기</button>
+      <button id="btnEditDefNote" class="btn-ghost">공용 노트 편집</button>
+      <button id="btnSaveInfo" class="btn-success" disabled>정보 저장</button>
+      <button id="btnSaveStatus" class="btn-success" disabled>상태 저장</button>
+    `;
+
+        openModal("업무 상세 (수정 가능)", body, footer);
+
+        $("#btnEditDefNote").addEventListener("click", ()=>{
+            openDefinitionNoteModal(task.taskDefinitionId);
+        });
+
+        const elStatus = $("#detailStatusSelect");
+        const elAssignee = $("#detailAssigneeSelect");
+        const elNotes = $("#detailNotes");
+        const elResult = $("#detailResult");
+        const hint = $("#detailDiffHint");
+
+        const btnInfo = $("#btnSaveInfo");
+        const btnStatus = $("#btnSaveStatus");
+
+        const orig = {
+            status: task.status ?? "",
+            assigneeId: task.assigneeId ?? "",
+            taskNotes: task.taskNotes ?? "",
+            result: task.result ?? ""
+        };
+
+        function computeDiff(){
+            const cur = {
+                status: (elStatus.value ?? ""),
+                assigneeId: (elAssignee.value ?? ""),
+                taskNotes: (elNotes.value ?? ""),
+                result: (elResult.value ?? "")
+            };
+
+            const statusChanged = cur.status !== orig.status;
+            const infoChanged =
+                (cur.assigneeId !== orig.assigneeId) ||
+                (cur.taskNotes !== orig.taskNotes) ||
+                (cur.result !== orig.result);
+
+            btnStatus.disabled = !statusChanged;
+            btnInfo.disabled = !infoChanged;
+
+            const parts = [];
+            if(statusChanged) parts.push(`상태: ${orig.status} → ${cur.status}`);
+            if(cur.assigneeId !== orig.assigneeId) parts.push(`담당자: ${staffLabelById(orig.assigneeId)} → ${staffLabelById(cur.assigneeId)}`);
+            if(cur.taskNotes !== orig.taskNotes) parts.push(`메모: ${cur.taskNotes === "" ? "삭제" : "변경"}`);
+            if(cur.result !== orig.result) parts.push(`결과: ${cur.result === "" ? "삭제" : "변경"}`);
+
+            hint.textContent = parts.length ? `변경됨: ${parts.join(" / ")}` : "변경사항 없음";
+            return {cur, statusChanged, infoChanged};
+        }
+
+        elStatus.addEventListener("change", computeDiff);
+        elAssignee.addEventListener("change", computeDiff);
+        elNotes.addEventListener("input", computeDiff);
+        elResult.addEventListener("input", computeDiff);
+        computeDiff();
+
+        btnInfo.addEventListener("click", async ()=>{
+            const {cur, infoChanged} = computeDiff();
+            if(!infoChanged) return;
+
+            try{
+                btnInfo.disabled = true;
+                btnInfo.textContent = "저장 중...";
+
+                const payload = buildPatchPayloadWithEmptyAllowed(task, cur);
+                if(Object.keys(payload).length === 0){
+                    toast("변경사항 없음");
+                    btnInfo.textContent = "정보 저장";
+                    computeDiff();
+                    return;
+                }
+
+                const updated = await API.patchTask(task.id, payload);
+
+                toast("정보 저장 완료");
+                await reloadAll(false);
+
+                closeModal();
+                renderTaskDetail(updated);
+            }catch(e){
+                toast(e.message);
+            }finally{
+                btnInfo.textContent = "정보 저장";
+            }
+        });
+
+        btnStatus.addEventListener("click", async ()=>{
+            const {cur, statusChanged} = computeDiff();
+            if(!statusChanged) return;
+
+            try{
+                btnStatus.disabled = true;
+                btnStatus.textContent = "저장 중...";
+
+                const updated = await API.patchTaskStatus(task.id, cur.status);
+
+                toast("상태 저장 완료");
+                await reloadAll(false);
+
+                closeModal();
+                renderTaskDetail(updated);
+            }catch(e){
+                toast(e.message);
+            }finally{
+                btnStatus.textContent = "상태 저장";
+            }
+        });
+    }
+
+    function renderBlankRowPicker(hour){
+        const existingDefIds = new Set(state.rows.filter(r=>r.type==="DEF").map(r=>r.defId));
+        const available = state.defs
+            .filter(d => !d.fixed)
+            .filter(d => !existingDefIds.has(d.id))
+            .sort((a,b)=> (a.name ?? "").localeCompare(b.name ?? ""));
+
+        const options = available.map(d=>`<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} (OPTIONAL)</option>`).join("");
+
+        const body = `
+      <div class="help">
+        공백 행에 추가할 항목을 선택하세요. (선택 후 해당 시간(${hour}시)에 Task 생성도 같이 진행)
+      </div>
+      <div class="grid2">
+        <div>
+          <div class="muted" style="margin:0 0 6px">추가할 TaskDefinition</div>
+          <select id="pickDef">${options || `<option value="">추가 가능한 항목이 없습니다</option>`}</select>
+        </div>
+        <div>
+          <div class="muted" style="margin:0 0 6px">업무 메모(선택)</div>
+          <input id="pickNotes" type="text" placeholder="예: 측정 후 기록" />
+        </div>
+      </div>
+      <div class="muted">선택한 항목은 표에 새 행으로 추가됩니다.</div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">취소</button>
+      <button id="btnAddDefAndCreate" ${available.length ? "" : "disabled"}>추가 + 생성</button>
+    `;
+
+        openModal("공백 행: 항목 추가", body, footer);
+
+        $("#btnAddDefAndCreate")?.addEventListener("click", async ()=>{
+            const defId = $("#pickDef").value;
+            if(!defId){ toast("선택 가능한 항목이 없습니다."); return; }
+            const notes = $("#pickNotes").value || null;
+            try{
+                await createTask(defId, hour, notes);
+                await reloadAll(false);
+                closeModal();
+                toast("추가 및 생성 완료");
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
+
+    function renderCreateTaskModal(defId, hour){
+        const def = state.defById.get(defId);
+
+        const body = `
+      <div class="help">
+        <b>${escapeHtml(def?.name ?? defId)}</b> · ${escapeHtml(state.date)} / ${hour}시 Task를 생성합니다.
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="muted" style="margin:0 0 6px">업무 메모(taskNotes)</div>
+          <input id="createNotes" type="text" placeholder="예: 체온 측정 후 기록" />
+        </div>
+        <div>
+          <div class="muted" style="margin:0 0 6px">담당자 선택(선택)</div>
+          ${renderStaffSelect("createAssigneeSelect", "")}
+        </div>
+      </div>
+
+      <div class="muted">※ 생성되면 기본 상태는 PENDING 입니다.</div>
+    `;
+
+        const footer = `
+      <button class="btn-ghost" onclick="closeModal()">취소</button>
+      <button id="btnCreateTask">생성</button>
+    `;
+
+        openModal("업무 생성", body, footer);
+
+        $("#btnCreateTask").addEventListener("click", async ()=>{
+            const notes = $("#createNotes").value || null;
+            const assigneeId = $("#createAssigneeSelect").value.trim();
+            try{
+                await createTask(defId, hour, notes, assigneeId);
+                await reloadAll(false);
+                closeModal();
+                toast("업무가 생성되었습니다.");
+            }catch(e){
+                toast(e.message);
+            }
+        });
+    }
+
+    /***********************
+     * CORE ACTIONS
+     ***********************/
     async function loadInitial(patientId, date){
         state.patientId = patientId;
         state.date = date;
@@ -865,20 +1208,25 @@
 
         state.tasks = await API.getPatientDayTasks(patientId, date);
 
+        // ✅ definition-notes
         try{
             state.definitionNotes = await API.getDefinitionNotes(patientId, date);
         }catch(e){
             state.definitionNotes = [];
+            toast(e.message);
         }
         buildNoteMap();
 
+        // ✅ day-context-notes (없으면 404일 수 있으니 안전 처리)
         try{
-            const ctx = await API.getDayContextNotes(patientId, date);
+            const ctx = await API.getDayContextNote(patientId, date);
             state.dayContextNote = ctx;
-            state.ctxContent = buildCtxContentMapFromResponse(ctx);
+            state.dayContextContent = normalizeContextContent(ctx?.content ?? {});
         }catch(e){
             state.dayContextNote = null;
-            state.ctxContent = new Map();
+            state.dayContextContent = {};
+            // 404면 토스트 안 띄우고 조용히
+            if(!String(e.message ?? "").includes("404")) toast(e.message);
         }
 
         buildTaskMap();
@@ -889,6 +1237,7 @@
 
     async function reloadAll(showToast=true){
         if(!state.patientId || !state.date) return;
+
         try{
             if(showToast) toast("새로고침 중...");
 
@@ -903,16 +1252,18 @@
                 state.definitionNotes = await API.getDefinitionNotes(state.patientId, state.date);
             }catch(e){
                 state.definitionNotes = [];
+                toast(e.message);
             }
             buildNoteMap();
 
             try{
-                const ctx = await API.getDayContextNotes(state.patientId, state.date);
+                const ctx = await API.getDayContextNote(state.patientId, state.date);
                 state.dayContextNote = ctx;
-                state.ctxContent = buildCtxContentMapFromResponse(ctx);
+                state.dayContextContent = normalizeContextContent(ctx?.content ?? {});
             }catch(e){
                 state.dayContextNote = null;
-                state.ctxContent = new Map();
+                state.dayContextContent = {};
+                if(!String(e.message ?? "").includes("404")) toast(e.message);
             }
 
             buildTaskMap();
@@ -924,6 +1275,64 @@
         }catch(e){
             toast(e.message);
         }
+    }
+
+    async function createTask(defId, hour, notes=null, assigneeId=""){
+        const payload = {
+            patientId: state.patientId,
+            taskDefinitionId: defId,
+            taskDate: state.date,
+            taskHour: hour,
+            taskNotes: notes,
+            assigneeId: assigneeId
+        };
+        return await API.createTask(payload);
+    }
+
+    /***********************
+     * TABLE CLICK HANDLER
+     ***********************/
+    $("#chartTable").addEventListener("click", (e)=>{
+        // ✅ Day context cell click
+        const ctxTd = e.target.closest("td.ctx-cell[data-cell-kind='CTX']");
+        if(ctxTd){
+            const lineNo = Number(ctxTd.dataset.lineNo);
+            if(Number.isFinite(lineNo)) openDayContextLineModal(lineNo);
+            return;
+        }
+
+        // ✅ Definition note cell click
+        const noteTd = e.target.closest("td.note-cell[data-cell-kind='NOTE']");
+        if(noteTd){
+            const defId = noteTd.dataset.defId;
+            if(defId) openDefinitionNoteModal(defId);
+            return;
+        }
+
+        // ✅ Task cell click
+        const td = e.target.closest("td.cell[data-cell-kind='TASK']");
+        if(!td) return;
+
+        const rowType = td.dataset.rowType;
+        const defId = td.dataset.defId;
+        const hour = Number(td.dataset.hour);
+
+        if(rowType === "DEF"){
+            const t = state.taskMap.get(`${defId}|${hour}`) ?? null;
+            if(t) renderTaskDetail(t);
+            else renderCreateTaskModal(defId, hour);
+        }else{
+            renderBlankRowPicker(hour);
+        }
+    });
+
+    /***********************
+     * BOOTSTRAP
+     ***********************/
+    function setInputsFromState(){
+        $("#jwtInput").value = state.jwtToken ?? "";
+        $("#patientIdInput").value = state.patientId ?? "";
+        $("#dateInput").value = state.date ?? "";
     }
 
     async function boot(){
