@@ -1,4 +1,4 @@
-package com.vetsync.backend.dto.patientDayNote;
+package com.vetsync.backend.dto.patientDayContextNote;
 
 import com.vetsync.backend.domain.PatientDayContextNote;
 import io.swagger.v3.oas.annotations.media.Schema;

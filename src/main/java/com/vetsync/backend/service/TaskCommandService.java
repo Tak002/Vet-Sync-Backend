@@ -10,7 +10,6 @@ import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.TaskRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TaskCommandService {
     private final TaskRepository taskRepository;
     private final PatientService patientService;
@@ -89,12 +87,10 @@ public class TaskCommandService {
 
         // assignee
         // null 일경우 변경 x
-        log.info("AssigneeId: {}", req.assigneeId());
         if (req.assigneeId() != null) {
             // 빈 문자열 일 경우 담당자 해제
             if(req.assigneeId().isBlank()) {
                 task.setAssignee(null);
-                log.info("Assignee cleared");
             }else{
                 UUID assigneeId;
                 try{
@@ -105,7 +101,6 @@ public class TaskCommandService {
                 }
                 // 유효한 직원인지 검증
                 staffService.validateStaffId(assigneeId, hospitalId);
-                log.info("Assignee set to: {}", assigneeId);
 
                 task.setAssignee(entityManager.getReference(Staff.class, assigneeId));
             }

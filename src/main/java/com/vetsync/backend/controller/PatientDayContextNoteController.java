@@ -1,7 +1,7 @@
 package com.vetsync.backend.controller;
 
-import com.vetsync.backend.dto.patientDayNote.PatientDayContextNoteResponse;
-import com.vetsync.backend.dto.patientDayNote.PatientDayContextNoteUpsertRequest;
+import com.vetsync.backend.dto.patientDayContextNote.PatientDayContextNoteResponse;
+import com.vetsync.backend.dto.patientDayContextNote.PatientDayContextNoteUpsertRequest;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.service.PatientDayContextNoteService;
 import io.swagger.v3.oas.annotations.Operation;
