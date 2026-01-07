@@ -102,7 +102,7 @@ public class TaskDefinitionController {
     )
     public ResponseEntity<TaskDefinitionResponse> updateTaskDefinition(
             @HospitalId UUID hospitalId,
-            @PathVariable("id") UUID id,
+            @PathVariable UUID id,
             @Valid @RequestBody TaskDefinitionUpdateRequest request
     ) {
         return ResponseEntity.ok(taskDefinitionService.update(hospitalId, id, request));

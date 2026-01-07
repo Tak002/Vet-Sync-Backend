@@ -1,6 +1,4 @@
--- =========================================================
--- ENUM TYPES
--- =========================================================
+-- PostgreSQL 17 기준
 CREATE TYPE patient_species AS ENUM ('DOG','CAT','OTHER');
 
 CREATE TYPE task_status AS ENUM ('PENDING','IN_PROGRESS','CONFIRM_WAITING','COMPLETED');
@@ -10,14 +8,12 @@ CREATE TYPE patient_gender AS ENUM (
     'NM',  -- 중성화 수컷
     'F',
     'SF'   -- 중성화 암컷
-    );
+);
 
 CREATE TYPE patient_status AS ENUM ('REGISTERED','ADMITTED','HOSPITALIZED','DISCHARGED');
 
 CREATE TYPE staff_role AS ENUM ('CHIEF_VET','VET','SENIOR_TECH','TECH','FRONT');
 
--- =========================================================
--- TABLES
 -- =========================================================
 CREATE TABLE hospitals (
     id uuid PRIMARY KEY,
@@ -75,6 +71,7 @@ CREATE TABLE task_definitions (
     is_fixed boolean NOT NULL,
     hospital_id uuid,
     description text,
+    order_no integer NULL,
     options jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
@@ -102,10 +99,10 @@ CREATE TABLE tasks (
 
     -- 업무 예정 일자 / 시간
     task_date date NOT NULL,               -- YYYY-MM-DD
-    task_hour smallint NOT NULL,            -- 0 ~ 23
+    task_hour smallint NOT NULL,           -- 0 ~ 23
 
     -- 공용 노트 참조
-   patient_day_task_definition_note_id uuid,
+    patient_day_task_definition_note_id uuid,
 
     -- 개별 task 전용 메모
     task_notes text,
@@ -130,6 +127,18 @@ CREATE TABLE patient_day_context_notes (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- =========================================================
+-- INDEXES & CONSTRAINTS (추가 제약)
+-- =========================================================
+-- TaskDefinition 이름 유니크(병원 내, 공백 트림/대소문자 무시)
+CREATE UNIQUE INDEX uk_task_definition_hospital_name_norm
+    ON task_definitions (hospital_id, lower(btrim(name)));
+
+-- fixed=true 이면서 order_no가 있는 경우에만 병원 내 유니크
+CREATE UNIQUE INDEX uk_task_definition_fixed_order_per_hospital
+    ON task_definitions (hospital_id, order_no)
+    WHERE is_fixed = true AND order_no IS NOT NULL;
 
 -- =========================
 -- FOREIGN KEYS

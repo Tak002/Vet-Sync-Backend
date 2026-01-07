@@ -17,6 +17,9 @@ import java.util.UUID;
             @Schema(example = "true")
             boolean fixed,
 
+            @Schema(description = "고정 항목 표시 순서(1..N). 비고정은 null", example = "3", nullable = true)
+            Integer order,
+
             @Schema(example = "환자 체중 측정", nullable = true)
             String description,
 
@@ -28,6 +31,7 @@ import java.util.UUID;
                     e.getId(),
                 e.getName(),
                     e.isFixed(),
+                    e.getOrder(),
                     e.getDescription(),
                     e.getOptions()
             );
