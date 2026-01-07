@@ -11,6 +11,9 @@ public record PatientDayTaskDefinitionNoteUpdateRequest(
                 example = "식욕 저하 지속 관찰"
         )
         @NotNull
-        String content
+        String content,
+
+        @Schema(description = "선택 옵션 key 배열(null이면 변경없음)", example = "[1,3]")
+        Short[] selectedOptionKeys
 ) {
 }

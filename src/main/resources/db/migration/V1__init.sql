@@ -68,15 +68,18 @@ CREATE TABLE patients (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Task Definition: 대분류(name) + 옵션 정의(options)
 CREATE TABLE task_definitions (
     id uuid PRIMARY KEY,
     name varchar(255) NOT NULL,
     is_fixed boolean NOT NULL,
     hospital_id uuid,
-    description text
+    description text,
+    options jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
 -- 공용 노트 테이블: 환자/일자/TaskDefinition 단위
+-- 다중 선택을 위해 selected_option_keys smallint[] 로 저장
 CREATE TABLE patient_day_task_definition_notes (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
@@ -84,6 +87,9 @@ CREATE TABLE patient_day_task_definition_notes (
     task_date date NOT NULL,
     task_definition_id uuid NOT NULL,
     content text NOT NULL DEFAULT '',
+
+    selected_option_keys smallint[] NOT NULL DEFAULT '{}'::smallint[],
+
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -223,6 +229,11 @@ CREATE UNIQUE INDEX uq_pdtddn_unique
 -- "그날 환자의 공용 노트 전체" 조회 최적화
 CREATE INDEX ix_pdtddn_day_lookup
     ON patient_day_task_definition_notes (hospital_id, patient_id, task_date);
+
+-- 다중 선택 조회 최적화 (예: 특정 옵션 포함 여부 검색)
+CREATE INDEX ix_pdtddn_selected_option_keys_gin
+    ON patient_day_task_definition_notes
+        USING GIN (selected_option_keys);
 
 -- tasks에서 note FK 조인 최적화
 CREATE INDEX ix_tasks_pdtddn_id

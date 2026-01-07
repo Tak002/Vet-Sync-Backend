@@ -61,7 +61,7 @@ public class PatientDayTaskDefinitionNoteService {
             }
             // 이미 note가 존재하지만, note 내용이 비어있는 경우에는 update로 처리
             return updateDefinitionNote(hospitalId, patientId, taskDate, already.getId(),
-                    new PatientDayTaskDefinitionNoteUpdateRequest(request.content())
+                    new PatientDayTaskDefinitionNoteUpdateRequest(request.content(), request.selectedOptionKeys())
             );
         }
 
@@ -71,6 +71,7 @@ public class PatientDayTaskDefinitionNoteService {
                 .taskDate(taskDate)
                 .taskDefinition(entityManager.getReference(TaskDefinition.class, request.taskDefinitionId()))
                 .content(request.content())
+                .selectedOptionKeys(request.selectedOptionKeys() == null ? new Short[]{} : request.selectedOptionKeys())
                 .build();
         return PatientDayTaskDefinitionNoteInfoResponse.from(patientDayTaskDefinitionNoteRepository.save(note));
     }
@@ -88,6 +89,9 @@ public class PatientDayTaskDefinitionNoteService {
                 .orElseThrow(()-> new CustomException(ErrorCode.TASK_DEFINITION_NOTE_NOT_FOUND));
         if (request.content() != null) {
             note.setContent(request.content().trim());
+        }
+        if (request.selectedOptionKeys() != null) {
+            note.setSelectedOptionKeys(request.selectedOptionKeys());
         }
         return PatientDayTaskDefinitionNoteInfoResponse.from(note);
     }

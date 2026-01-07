@@ -6,6 +6,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(
@@ -45,4 +47,10 @@ public class PatientDayTaskDefinitionNote extends BaseTimeEntity {
     @Column(name = "content", nullable = false)
     @Builder.Default
     private String content = "";
+
+    // 다중 선택 키 저장: smallint[]
+    @Column(name = "selected_option_keys", nullable = false, columnDefinition = "smallint[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Builder.Default
+    private Short[] selectedOptionKeys = new Short[]{};
 }

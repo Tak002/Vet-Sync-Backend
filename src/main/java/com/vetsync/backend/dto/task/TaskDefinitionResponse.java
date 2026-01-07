@@ -3,6 +3,7 @@ package com.vetsync.backend.dto.task;
 import com.vetsync.backend.domain.TaskDefinition;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Schema(name = "TaskDefinitionResponse", description = "업무 정의 응답 DTO")
@@ -17,14 +18,18 @@ import java.util.UUID;
             boolean fixed,
 
             @Schema(example = "환자 체중 측정", nullable = true)
-            String description
+            String description,
+
+            @Schema(description = "옵션 정의(JSON)", example = "{}")
+            Map<String, Object> options
     ) {
         public static TaskDefinitionResponse from(TaskDefinition e) {
             return new TaskDefinitionResponse(
                     e.getId(),
-                    e.getName(),
+                e.getName(),
                     e.isFixed(),
-                    e.getDescription()
+                    e.getDescription(),
+                    e.getOptions()
             );
         }
     }
