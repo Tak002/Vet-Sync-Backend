@@ -10,4 +10,8 @@ public interface TaskDefinitionRepository  extends JpaRepository<TaskDefinition,
     List<TaskDefinition> findAllByHospital_Id(UUID hospitalId);
 
     Boolean existsByIdAndHospital_Id(UUID id, UUID hospitalId);
+
+    boolean existsByHospital_IdAndNameIgnoreCase(UUID hospitalId, String name);
+
+    boolean existsByHospital_IdAndNameIgnoreCaseAndIdNot(UUID hospitalId, String name, UUID id);
 }

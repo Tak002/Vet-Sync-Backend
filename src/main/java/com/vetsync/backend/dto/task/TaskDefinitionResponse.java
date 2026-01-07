@@ -20,8 +20,8 @@ import java.util.UUID;
             @Schema(example = "환자 체중 측정", nullable = true)
             String description,
 
-            @Schema(description = "옵션 정의(JSON)", example = "{}")
-            Map<String, Object> options
+            @Schema(description = "옵션 정의(JSON)", example = "{\"1\":\"위액\",\"2\":\"음식물\"}")
+            Map<String, String> options
     ) {
         public static TaskDefinitionResponse from(TaskDefinition e) {
             return new TaskDefinitionResponse(

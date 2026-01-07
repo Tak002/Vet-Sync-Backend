@@ -226,6 +226,9 @@ CREATE UNIQUE INDEX uq_patient_hospital_owner_name
 CREATE UNIQUE INDEX uq_pdtddn_unique
     ON patient_day_task_definition_notes (hospital_id, patient_id, task_date, task_definition_id);
 
+CREATE UNIQUE INDEX uq_task_definition_hospital_name_norm
+    ON task_definitions (hospital_id, lower(btrim(name)));
+
 -- "그날 환자의 공용 노트 전체" 조회 최적화
 CREATE INDEX ix_pdtddn_day_lookup
     ON patient_day_task_definition_notes (hospital_id, patient_id, task_date);

@@ -14,7 +14,12 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "task_definitions")
+@Table(
+        name = "task_definitions",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_task_definition_hospital_name", columnNames = {"hospital_id", "name"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -38,8 +43,8 @@ public class TaskDefinition {
 
     private String description;
 
-    // JSONB options: e.g., {"options": [{"key":1, "label":"..."}, ...]}
+    // JSONB options: e.g., {"1":"위액","2":"음식물"}
     @Column(columnDefinition = "jsonb", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> options = new HashMap<>();
+    private Map<String, String> options = new HashMap<>();
 }

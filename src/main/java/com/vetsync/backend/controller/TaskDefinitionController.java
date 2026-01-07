@@ -1,6 +1,8 @@
 package com.vetsync.backend.controller;
 
+import com.vetsync.backend.dto.task.TaskDefinitionCreateRequest;
 import com.vetsync.backend.dto.task.TaskDefinitionResponse;
+import com.vetsync.backend.dto.task.TaskDefinitionUpdateRequest;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.service.TaskDefinitionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,9 +14,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -65,5 +73,54 @@ public class TaskDefinitionController {
     )
     public ResponseEntity<List<TaskDefinitionResponse>> getAllTaskDefinitions(@HospitalId UUID hospitalId) {
         return ResponseEntity.ok(taskDefinitionService.getAccessibleTaskDefinitions(hospitalId));
+    }
+
+    @PostMapping
+    @Operation(
+            summary = "업무 정의 생성",
+            description = "병원에 새로운 업무 정의(TaskDefinition)를 생성합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "생성 성공",
+                            content = @Content(schema = @Schema(implementation = TaskDefinitionResponse.class)))
+            }
+    )
+    public ResponseEntity<TaskDefinitionResponse> createTaskDefinition(
+            @HospitalId UUID hospitalId,
+            @Valid @RequestBody TaskDefinitionCreateRequest request
+    ) {
+        return ResponseEntity.ok(taskDefinitionService.create(hospitalId, request));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(
+            summary = "업무 정의 수정",
+            description = "업무 정의(TaskDefinition)를 수정합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "수정 성공",
+                            content = @Content(schema = @Schema(implementation = TaskDefinitionResponse.class)))
+            }
+    )
+    public ResponseEntity<TaskDefinitionResponse> updateTaskDefinition(
+            @HospitalId UUID hospitalId,
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody TaskDefinitionUpdateRequest request
+    ) {
+        return ResponseEntity.ok(taskDefinitionService.update(hospitalId, id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "업무 정의 삭제",
+            description = "업무 정의(TaskDefinition)를 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "삭제 성공")
+            }
+    )
+    public ResponseEntity<Void> deleteTaskDefinition(
+            @HospitalId UUID hospitalId,
+            @PathVariable("id") UUID id
+    ) {
+        taskDefinitionService.delete(hospitalId, id);
+        return ResponseEntity.noContent().build();
     }
 }
