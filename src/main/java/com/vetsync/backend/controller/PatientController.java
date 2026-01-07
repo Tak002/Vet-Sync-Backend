@@ -2,6 +2,7 @@ package com.vetsync.backend.controller;
 
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;
+import com.vetsync.backend.dto.patient.PatientDiagnosisUpdateRequest;
 import com.vetsync.backend.global.annotation.HospitalId;
 import com.vetsync.backend.global.annotation.StaffId;
 import com.vetsync.backend.service.PatientService;
@@ -33,5 +34,15 @@ public class PatientController {
     @Operation(summary = "환자 정보 조회", description = "환자의 정보를 조회합니다")
     public ResponseEntity<PatientInfoResponse> getPatientInfo(@HospitalId UUID hospitalId, @PathVariable UUID patientId) {
         return ResponseEntity.ok(patientService.getPatientInfo(hospitalId, patientId));
+    }
+
+    @PatchMapping("/{patientId}")
+    @Operation(summary = "환자 진단 정보 수정", description = "환자의 cc/diagnosis를 수정합니다")
+    public ResponseEntity<PatientInfoResponse> updatePatient(
+            @HospitalId UUID hospitalId,
+            @PathVariable UUID patientId,
+            @Valid @RequestBody PatientDiagnosisUpdateRequest request
+    ) {
+        return ResponseEntity.ok(patientService.updateDiagnosis(hospitalId, patientId, request));
     }
 }

@@ -57,6 +57,8 @@ CREATE TABLE patients (
     species patient_species NOT NULL,
     species_detail text,
     breed text,
+    cc text,
+    diagnosis text,
     gender patient_gender NOT NULL,
     status patient_status NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),

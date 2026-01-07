@@ -6,6 +6,7 @@ import com.vetsync.backend.domain.Patient;
 import com.vetsync.backend.domain.Staff;
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;
+import com.vetsync.backend.dto.patient.PatientDiagnosisUpdateRequest;
 import com.vetsync.backend.global.exception.CustomException;
 import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.HospitalRepository;
@@ -65,6 +66,22 @@ public class PatientService {
     public  PatientInfoResponse getPatientInfo(UUID hospitalId, UUID patientId) {
         Patient patient = patientRepository.findByIdAndHospitalId(patientId, hospitalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PATIENT_NOT_FOUND));
+        return PatientInfoResponse.from(patient);
+    }
+
+    @Transactional
+    public PatientInfoResponse updateDiagnosis(UUID hospitalId, UUID patientId, PatientDiagnosisUpdateRequest req) {
+        Patient patient = patientRepository.findByIdAndHospitalId(patientId, hospitalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PATIENT_NOT_FOUND));
+
+        if (req.cc() != null) {
+            patient.setCc(req.cc());
+        }
+        if (req.diagnosis() != null) {
+            patient.setDiagnosis(req.diagnosis());
+        }
+
+        // JPA dirty checking will update on transaction commit
         return PatientInfoResponse.from(patient);
     }
 }
