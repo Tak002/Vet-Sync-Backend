@@ -130,6 +130,30 @@ CREATE TABLE patient_day_context_notes (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- 환자별 일일 급여 기록(사료/아침/점심/저녁 메뉴 및 섭취 상태)
+CREATE TABLE feedings (
+    id uuid PRIMARY KEY,
+    hospital_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    feeding_date date NOT NULL,
+
+    -- 사료(예: i/d low fat can loog + 죽토핑)
+    diet text NOT NULL DEFAULT '',
+
+    -- 각 식사별 메뉴와 섭취 상태(1: 절폐, 2: 감소, 3: 정상, 4: 강제급여)
+    breakfast_menu text NOT NULL DEFAULT '',
+    breakfast_status smallint NOT NULL DEFAULT 3 CHECK (breakfast_status BETWEEN 1 AND 4),
+
+    lunch_menu text NOT NULL DEFAULT '',
+    lunch_status smallint NOT NULL DEFAULT 3 CHECK (lunch_status BETWEEN 1 AND 4),
+
+    dinner_menu text NOT NULL DEFAULT '',
+    dinner_status smallint NOT NULL DEFAULT 3 CHECK (dinner_status BETWEEN 1 AND 4),
+
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- =========================================================
 -- INDEXES & CONSTRAINTS (추가 제약)
 -- =========================================================
@@ -220,6 +244,14 @@ ALTER TABLE patient_day_context_notes
     ADD CONSTRAINT fk_patient_day_context_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
+ALTER TABLE feedings
+    ADD CONSTRAINT fk_feedings_hospital
+        FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
+
+ALTER TABLE feedings
+    ADD CONSTRAINT fk_feedings_patient
+        FOREIGN KEY (patient_id) REFERENCES patients (id);
+
 -- =========================================================
 -- INDEXES / UNIQUE
 -- =========================================================
@@ -229,6 +261,10 @@ CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
 
 CREATE UNIQUE INDEX uq_patient_day_context_notes_unique
     ON patient_day_context_notes (hospital_id, patient_id, note_date);
+
+-- 병원/환자/일자 당 1건만 존재
+CREATE UNIQUE INDEX uq_feedings_unique
+    ON feedings (hospital_id, patient_id, feeding_date);
 
 CREATE UNIQUE INDEX uq_patient_hospital_owner_name
     ON patients (hospital_id, owner_id, name);
@@ -255,3 +291,7 @@ CREATE INDEX ix_tasks_pdtddn_id
 
 CREATE INDEX ix_pdcn_day_lookup
     ON patient_day_context_notes (hospital_id, patient_id, note_date);
+
+-- 급여 조회 최적화
+CREATE INDEX ix_feedings_day_lookup
+    ON feedings (hospital_id, patient_id, feeding_date);
