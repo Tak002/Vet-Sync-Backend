@@ -4,9 +4,9 @@ import com.vetsync.backend.domain.Hospital;
 import com.vetsync.backend.domain.Owner;
 import com.vetsync.backend.domain.Patient;
 import com.vetsync.backend.domain.Staff;
+import com.vetsync.backend.dto.patient.PatientDiagnosisUpdateRequest;
 import com.vetsync.backend.dto.patient.PatientInfoResponse;
 import com.vetsync.backend.dto.patient.PatientRegisterRequest;
-import com.vetsync.backend.dto.patient.PatientDiagnosisUpdateRequest;
 import com.vetsync.backend.global.enums.PatientGender;
 import com.vetsync.backend.global.enums.PatientSpecies;
 import com.vetsync.backend.global.enums.PatientStatus;
@@ -15,15 +15,15 @@ import com.vetsync.backend.global.exception.ErrorCode;
 import com.vetsync.backend.repository.HospitalRepository;
 import com.vetsync.backend.repository.PatientRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +61,7 @@ public class PatientService {
         return  PatientInfoResponse.from(saved);
     }
 
+    @Transactional(readOnly = true)
     public void validatePatientAccessible(UUID hospitalId, @NotNull UUID patientId) {
         if (hospitalRepository.findById(hospitalId).isEmpty()) {
             throw new CustomException(ErrorCode.HOSPITAL_NOT_FOUND);
@@ -70,6 +71,7 @@ public class PatientService {
         }
     }
 
+    @Transactional(readOnly = true)
     public  PatientInfoResponse getPatientInfo(UUID hospitalId, UUID patientId) {
         Patient patient = patientRepository.findByIdAndHospitalId(patientId, hospitalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PATIENT_NOT_FOUND));

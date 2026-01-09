@@ -91,7 +91,14 @@ public class PatientDayTaskDefinitionNoteService {
             note.setContent(request.content().trim());
         }
         if (request.selectedOptionKeys() != null) {
+            // 선택된 option key 들이 실제 TaskDefinition 의 options 에 존재하는 key 인지 검증
+            for (Short key : request.selectedOptionKeys()) {
+                if (key == null || !note.getTaskDefinition().getOptions().containsKey(String.valueOf(key))) {
+                    throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+                }
+            }
             note.setSelectedOptionKeys(request.selectedOptionKeys());
+            
         }
         return PatientDayTaskDefinitionNoteInfoResponse.from(note);
     }

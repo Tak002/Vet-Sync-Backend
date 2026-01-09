@@ -28,7 +28,7 @@ public class OptionMapValidator implements ConstraintValidator<ValidOptionMap, M
             keys.add(Integer.parseInt(key));
 
         }
-
+        keys.sort(Integer::compareTo);
         for (int i = 0; i < keys.size(); i++) {
             int expected = i + 1;
             if (keys.get(i) != expected) {

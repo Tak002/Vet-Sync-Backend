@@ -157,10 +157,6 @@ CREATE TABLE feedings (
 -- =========================================================
 -- INDEXES & CONSTRAINTS (추가 제약)
 -- =========================================================
--- TaskDefinition 이름 유니크(병원 내, 공백 트림/대소문자 무시)
-CREATE UNIQUE INDEX uk_task_definition_hospital_name_norm
-    ON task_definitions (hospital_id, lower(btrim(name)));
-
 -- fixed=true 이면서 order_no가 있는 경우에만 병원 내 유니크
 CREATE UNIQUE INDEX uk_task_definition_fixed_order_per_hospital
     ON task_definitions (hospital_id, order_no)
