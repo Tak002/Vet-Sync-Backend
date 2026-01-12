@@ -1,0 +1,19 @@
+{
+  "defaultMode": "acceptEdits",
+  "permissions": {
+    "deny": [
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git reset --hard*)"
+    ],
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git add*)",
+      "Bash(gradle*)",
+      "Bash(./gradlew*)",
+      "Bash(docker*)",
+      "Bash(docker-compose*)"
+    ]
+  }
+}
