@@ -43,6 +43,12 @@ public class Patient extends BaseTimeEntity {
     private String speciesDetail;
     private String breed;
 
+    // Chief complaint (주호소)
+    private String cc;
+
+    // 의사 진단
+    private String diagnosis;
+
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private PatientGender gender;

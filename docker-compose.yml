@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  flyway:
+    image: flyway/flyway:11
+    container_name: flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/postgres
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: "1234"
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      # 기존 DB면 필요
+      # FLYWAY_BASELINE_ON_MIGRATE: "true"
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql:ro
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spring-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Spring이 컨테이너 내부에서 DB로 붙을 때는 localhost가 아니라 서비스명 사용
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "1234"
+      JWT_SECRET_KEY: "오늘점심으로뭐먹을까?배고픈데어캐하지?"
+      SPRING_FLYWAY_ENABLED: "false"
+
+      # SPRING_PROFILES_ACTIVE: "prod"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

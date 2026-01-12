@@ -24,7 +24,7 @@
 
             /* sticky column widths */
             --col1: 150px;   /* Definition */
-            --col2: 170px;   /* Definition Note (공용노트) - 줄임 */
+            --col2: 200px;   /* Options (옵션) */
             --col2-left: var(--col1);
 
             --colCtx: 240px; /* 일일메모 컬럼 폭 */
@@ -165,6 +165,26 @@
         .row-title{display:flex;flex-direction:column;gap:2px;padding:0 2px}
         .row-title .name{font-weight:700}
         .row-title .desc{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+
+        /* Options cell */
+        td.options-cell{
+            cursor: default;
+            background: rgba(0,0,0,.10);
+            transition:.12s ease;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            min-width: var(--col2);
+            max-width: var(--col2);
+        }
+        td.options-cell:hover{
+            outline:2px solid rgba(140,190,255,.45);
+            outline-offset:-2px;
+            filter: brightness(1.07);
+        }
+        .options-list{ display:flex; flex-direction:column; gap:4px; max-height:92px; overflow:auto; padding-right:2px }
+        .opt-item{ display:flex; align-items:center; gap:6px; font-size:11px; color: rgba(232,238,252,.92); }
+        .opt-item input{ accent-color:#6aa2ff; }
 
         /* Definition-note cell */
         td.note-cell{
@@ -687,6 +707,7 @@
       <thead>
         <tr>
           <th>Date</th>
+          <th>옵션</th>
           <th>공용노트</th>
           <th colspan="12">AM</th>
           <th colspan="12">PM</th>
@@ -697,6 +718,7 @@
           </th>
         </tr>
         <tr>
+          <th></th>
           <th></th>
           <th></th>
           ${amHeads}
@@ -731,6 +753,64 @@
             </div>
           </td>
         `;
+
+            // ✅ 옵션 셀(정의별)
+            const optionsCell = (() => {
+                if(r.type !== "DEF"){
+                    return `<td class="options-cell muted" title="공백 행은 옵션을 가질 수 없습니다.">-</td>`;
+                }
+
+                const def = state.defById.get(r.defId);
+                const optsRaw = def?.options ?? {};
+                // 1) Map 형태 {"1":"라벨"} 우선 처리 → [{key:Number, label:String}] 변환
+                let list = [];
+                if(optsRaw && typeof optsRaw === 'object' && !Array.isArray(optsRaw)){
+                    try{
+                        list = Object.entries(optsRaw)
+                            .map(([k,v])=>({ key: Number(k), label: String(v) }))
+                            .filter(it => Number.isFinite(it.key));
+                        list.sort((a,b)=> a.key - b.key);
+                    }catch(_){ list = []; }
+                }
+                // 2) 하위 호환: { options:[{key,label}] } 형태
+                if(!list.length && Array.isArray(optsRaw?.options)){
+                    list = optsRaw.options
+                        .map(it=>({ key: Number(it?.key), label: String(it?.label ?? it?.name ?? '') }))
+                        .filter(it => Number.isFinite(it.key) && !!it.label);
+                }
+                // 3) 배열 자체가 오는 경우
+                if(!list.length && Array.isArray(optsRaw)){
+                    list = optsRaw
+                        .map((it,idx)=>({ key: Number(it?.key ?? (idx+1)), label: String(it?.label ?? it?.name ?? '') }))
+                        .filter(it => Number.isFinite(it.key) && !!it.label);
+                }
+                // 비어 있으면 셀 공백 렌더(문구 표시하지 않음)
+                if(!list.length){
+                    return `<td class="options-cell"></td>`;
+                }
+
+                const note = state.noteByDefId.get(r.defId) ?? null;
+                const selected = new Set((note?.selectedOptionKeys ?? []).map(Number));
+
+                const itemsHtml = list.map((it, idx)=>{
+                    const keyNum = Number(it?.key);
+                    const checked = selected.has(keyNum) ? "checked" : "";
+                    const circled = String.fromCharCode(9312 + (idx % 20)); // ①(9312) 시작
+                    const label = (it?.label ?? it?.name ?? `옵션 ${idx+1}`);
+                    return `
+                        <label class="opt-item">
+                          <input type="checkbox" data-cell-kind="OPTS" data-def-id="${escapeHtml(r.defId)}" data-note-id="${escapeHtml(note?.id ?? '')}" data-opt-key="${escapeHtml(keyNum)}" ${checked} />
+                          <span>${escapeHtml(circled)}. ${escapeHtml(label)}</span>
+                        </label>
+                    `;
+                }).join("");
+
+                return `
+                  <td class="options-cell" data-cell-kind="OPTS_CELL" data-def-id="${escapeHtml(r.defId)}" data-note-id="${escapeHtml((state.noteByDefId.get(r.defId)?.id) ?? '')}">
+                    <div class="options-list">${itemsHtml}</div>
+                  </td>
+                `;
+            })();
 
             // ✅ 공용 노트(정의별)
             const noteCell = (() => {
@@ -798,7 +878,7 @@
         </td>
       `;
 
-            return `<tr data-row-index="${rowIdx}">${left}${noteCell}${hourCells}${rightInfo}${ctxCell}</tr>`;
+            return `<tr data-row-index="${rowIdx}">${left}${optionsCell}${noteCell}${hourCells}${rightInfo}${ctxCell}</tr>`;
         }).join("");
 
         table.innerHTML = thead + `<tbody>${rowsHtml}</tbody>`;
@@ -1323,6 +1403,51 @@
             else renderCreateTaskModal(defId, hour);
         }else{
             renderBlankRowPicker(hour);
+        }
+    });
+
+    // ✅ OPTIONS CHECK HANDLER (change 이벤트로 처리)
+    $("#chartTable").addEventListener("change", async (e)=>{
+        const cb = e.target.closest("input[type='checkbox'][data-cell-kind='OPTS']");
+        if(!cb) return;
+
+        const td = cb.closest("td.options-cell[data-cell-kind='OPTS_CELL']");
+        if(!td) return;
+
+        const defId = td.dataset.defId;
+        const note = state.noteByDefId.get(defId) ?? null;
+
+        // 현재 셀의 체크된 키 수집
+        const keys = Array.from(td.querySelectorAll("input[type='checkbox'][data-cell-kind='OPTS']:checked"))
+            .map(el => Number(el.getAttribute("data-opt-key")))
+            .filter(n => Number.isFinite(n));
+
+        try{
+            // 중복 요청 방지용 잠금
+            if(td.dataset.loading === '1') return;
+            td.dataset.loading = '1';
+
+            if(note && note.id){
+                // content는 null을 보낼 수 없으므로 기존 값을 유지하여 전송
+                await API.patchDefinitionNote(state.patientId, state.date, note.id, {
+                    content: note.content ?? "",
+                    selectedOptionKeys: keys
+                });
+                toast("옵션이 저장되었습니다");
+            }else{
+                await API.createDefinitionNote(state.patientId, state.date, {
+                    taskDefinitionId: defId,
+                    content: "",
+                    selectedOptionKeys: keys
+                });
+                toast("옵션 노트가 생성되었습니다");
+            }
+
+            await reloadAll(false);
+        }catch(err){
+            toast(err.message || "옵션 저장 실패");
+        }finally{
+            delete td.dataset.loading;
         }
     });
 

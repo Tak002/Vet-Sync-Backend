@@ -1,6 +1,4 @@
--- =========================================================
--- ENUM TYPES
--- =========================================================
+-- PostgreSQL 17 기준
 CREATE TYPE patient_species AS ENUM ('DOG','CAT','OTHER');
 
 CREATE TYPE task_status AS ENUM ('PENDING','IN_PROGRESS','CONFIRM_WAITING','COMPLETED');
@@ -10,14 +8,12 @@ CREATE TYPE patient_gender AS ENUM (
     'NM',  -- 중성화 수컷
     'F',
     'SF'   -- 중성화 암컷
-    );
+);
 
 CREATE TYPE patient_status AS ENUM ('REGISTERED','ADMITTED','HOSPITALIZED','DISCHARGED');
 
 CREATE TYPE staff_role AS ENUM ('CHIEF_VET','VET','SENIOR_TECH','TECH','FRONT');
 
--- =========================================================
--- TABLES
 -- =========================================================
 CREATE TABLE hospitals (
     id uuid PRIMARY KEY,
@@ -61,6 +57,8 @@ CREATE TABLE patients (
     species patient_species NOT NULL,
     species_detail text,
     breed text,
+    cc text,
+    diagnosis text,
     gender patient_gender NOT NULL,
     status patient_status NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -68,15 +66,19 @@ CREATE TABLE patients (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Task Definition: 대분류(name) + 옵션 정의(options)
 CREATE TABLE task_definitions (
     id uuid PRIMARY KEY,
     name varchar(255) NOT NULL,
     is_fixed boolean NOT NULL,
     hospital_id uuid,
-    description text
+    description text,
+    order_no integer NULL,
+    options jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
 -- 공용 노트 테이블: 환자/일자/TaskDefinition 단위
+-- 다중 선택을 위해 selected_option_keys smallint[] 로 저장
 CREATE TABLE patient_day_task_definition_notes (
     id uuid PRIMARY KEY,
     hospital_id uuid NOT NULL,
@@ -84,6 +86,9 @@ CREATE TABLE patient_day_task_definition_notes (
     task_date date NOT NULL,
     task_definition_id uuid NOT NULL,
     content text NOT NULL DEFAULT '',
+
+    selected_option_keys smallint[] NOT NULL DEFAULT '{}'::smallint[],
+
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -96,10 +101,10 @@ CREATE TABLE tasks (
 
     -- 업무 예정 일자 / 시간
     task_date date NOT NULL,               -- YYYY-MM-DD
-    task_hour smallint NOT NULL,            -- 0 ~ 23
+    task_hour smallint NOT NULL,           -- 0 ~ 23
 
     -- 공용 노트 참조
-   patient_day_task_definition_note_id uuid,
+    patient_day_task_definition_note_id uuid,
 
     -- 개별 task 전용 메모
     task_notes text,
@@ -124,6 +129,38 @@ CREATE TABLE patient_day_context_notes (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- 환자별 일일 급여 기록(사료/아침/점심/저녁 메뉴 및 섭취 상태)
+CREATE TABLE feedings (
+    id uuid PRIMARY KEY,
+    hospital_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    feeding_date date NOT NULL,
+
+    -- 사료(예: i/d low fat can loog + 죽토핑)
+    diet text NOT NULL DEFAULT '',
+
+    -- 각 식사별 메뉴와 섭취 상태(1: 절폐, 2: 감소, 3: 정상, 4: 강제급여)
+    breakfast_menu text NOT NULL DEFAULT '',
+    breakfast_status smallint NOT NULL DEFAULT 3 CHECK (breakfast_status BETWEEN 1 AND 4),
+
+    lunch_menu text NOT NULL DEFAULT '',
+    lunch_status smallint NOT NULL DEFAULT 3 CHECK (lunch_status BETWEEN 1 AND 4),
+
+    dinner_menu text NOT NULL DEFAULT '',
+    dinner_status smallint NOT NULL DEFAULT 3 CHECK (dinner_status BETWEEN 1 AND 4),
+
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- =========================================================
+-- INDEXES & CONSTRAINTS (추가 제약)
+-- =========================================================
+-- fixed=true 이면서 order_no가 있는 경우에만 병원 내 유니크
+CREATE UNIQUE INDEX uk_task_definition_fixed_order_per_hospital
+    ON task_definitions (hospital_id, order_no)
+    WHERE is_fixed = true AND order_no IS NOT NULL;
 
 -- =========================
 -- FOREIGN KEYS
@@ -203,6 +240,14 @@ ALTER TABLE patient_day_context_notes
     ADD CONSTRAINT fk_patient_day_context_notes_patient
         FOREIGN KEY (patient_id) REFERENCES patients (id);
 
+ALTER TABLE feedings
+    ADD CONSTRAINT fk_feedings_hospital
+        FOREIGN KEY (hospital_id) REFERENCES hospitals (id);
+
+ALTER TABLE feedings
+    ADD CONSTRAINT fk_feedings_patient
+        FOREIGN KEY (patient_id) REFERENCES patients (id);
+
 -- =========================================================
 -- INDEXES / UNIQUE
 -- =========================================================
@@ -213,6 +258,10 @@ CREATE UNIQUE INDEX uq_owners_hospital_phone_not_null
 CREATE UNIQUE INDEX uq_patient_day_context_notes_unique
     ON patient_day_context_notes (hospital_id, patient_id, note_date);
 
+-- 병원/환자/일자 당 1건만 존재
+CREATE UNIQUE INDEX uq_feedings_unique
+    ON feedings (hospital_id, patient_id, feeding_date);
+
 CREATE UNIQUE INDEX uq_patient_hospital_owner_name
     ON patients (hospital_id, owner_id, name);
 
@@ -220,9 +269,17 @@ CREATE UNIQUE INDEX uq_patient_hospital_owner_name
 CREATE UNIQUE INDEX uq_pdtddn_unique
     ON patient_day_task_definition_notes (hospital_id, patient_id, task_date, task_definition_id);
 
+CREATE UNIQUE INDEX uq_task_definition_hospital_name_norm
+    ON task_definitions (hospital_id, lower(btrim(name)));
+
 -- "그날 환자의 공용 노트 전체" 조회 최적화
 CREATE INDEX ix_pdtddn_day_lookup
     ON patient_day_task_definition_notes (hospital_id, patient_id, task_date);
+
+-- 다중 선택 조회 최적화 (예: 특정 옵션 포함 여부 검색)
+CREATE INDEX ix_pdtddn_selected_option_keys_gin
+    ON patient_day_task_definition_notes
+        USING GIN (selected_option_keys);
 
 -- tasks에서 note FK 조인 최적화
 CREATE INDEX ix_tasks_pdtddn_id
@@ -230,3 +287,7 @@ CREATE INDEX ix_tasks_pdtddn_id
 
 CREATE INDEX ix_pdcn_day_lookup
     ON patient_day_context_notes (hospital_id, patient_id, note_date);
+
+-- 급여 조회 최적화
+CREATE INDEX ix_feedings_day_lookup
+    ON feedings (hospital_id, patient_id, feeding_date);

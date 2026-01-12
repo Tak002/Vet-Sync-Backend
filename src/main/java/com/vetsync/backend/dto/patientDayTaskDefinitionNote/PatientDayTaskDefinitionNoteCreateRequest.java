@@ -14,6 +14,9 @@ public record PatientDayTaskDefinitionNoteCreateRequest(
 
         @Schema(description = "공용 노트 내용", example = "체온 측정 후 2시간 뒤 재측정")
         @NotNull
-        String content
+        String content,
+
+        @Schema(description = "선택 옵션 key 배열 (없으면 빈 배열)", example = "[1,2]")
+        Short[] selectedOptionKeys
 ) {
 }

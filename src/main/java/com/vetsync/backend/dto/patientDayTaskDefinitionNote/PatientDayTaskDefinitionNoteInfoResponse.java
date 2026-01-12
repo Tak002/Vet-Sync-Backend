@@ -15,14 +15,18 @@ public record PatientDayTaskDefinitionNoteInfoResponse(
         UUID taskDefinitionId,
 
         @Schema(description = "공용 노트 내용", example = "소진시 내복약 복용")
-        String content
+        String content,
+
+        @Schema(description = "선택 옵션 key 배열", example = "[1,2]")
+        Short[] selectedOptionKeys
 ) {
 
     public static PatientDayTaskDefinitionNoteInfoResponse from(PatientDayTaskDefinitionNote entity) {
         return new PatientDayTaskDefinitionNoteInfoResponse(
                 entity.getId(),
                 entity.getTaskDefinition().getId(),
-                entity.getContent()
+                entity.getContent(),
+                entity.getSelectedOptionKeys()
         );
     }
 }

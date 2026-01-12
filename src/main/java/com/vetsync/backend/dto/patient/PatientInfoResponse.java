@@ -30,6 +30,12 @@ public record PatientInfoResponse(
         @Schema(description = "품종")
         String breed,
 
+        @Schema(description = "주호소(Chief complaint)")
+        String cc,
+
+        @Schema(description = "진단")
+        String diagnosis,
+
         @Schema(description = "성별")
         PatientGender gender,
 
@@ -47,6 +53,8 @@ public record PatientInfoResponse(
                 patient.getSpecies(),
                 patient.getSpeciesDetail(),
                 patient.getBreed(),
+                patient.getCc(),
+                patient.getDiagnosis(),
                 patient.getGender(),
                 patient.getStatus(),
                 patient.getCreatedBy().getId()

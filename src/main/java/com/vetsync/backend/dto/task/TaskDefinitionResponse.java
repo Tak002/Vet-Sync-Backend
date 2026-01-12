@@ -3,6 +3,7 @@ package com.vetsync.backend.dto.task;
 import com.vetsync.backend.domain.TaskDefinition;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Schema(name = "TaskDefinitionResponse", description = "업무 정의 응답 DTO")
@@ -16,15 +17,23 @@ import java.util.UUID;
             @Schema(example = "true")
             boolean fixed,
 
+            @Schema(description = "고정 항목 표시 순서(1..N). 비고정은 null", example = "3", nullable = true)
+            Integer order,
+
             @Schema(example = "환자 체중 측정", nullable = true)
-            String description
+            String description,
+
+            @Schema(description = "옵션 정의(JSON)", example = "{\"1\":\"위액\",\"2\":\"음식물\"}")
+            Map<String, String> options
     ) {
         public static TaskDefinitionResponse from(TaskDefinition e) {
             return new TaskDefinitionResponse(
                     e.getId(),
-                    e.getName(),
+                e.getName(),
                     e.isFixed(),
-                    e.getDescription()
+                    e.getOrder(),
+                    e.getDescription(),
+                    e.getOptions()
             );
         }
     }

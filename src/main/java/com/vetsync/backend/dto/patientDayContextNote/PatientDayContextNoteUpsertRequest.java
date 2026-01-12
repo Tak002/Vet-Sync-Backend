@@ -12,11 +12,11 @@ import java.util.Map;
 public record PatientDayContextNoteUpsertRequest(
 
         @Schema(
-                description = "줄 번호 -> 내용 (줄 번호: 1~20, 내용: 최대 40자)",
+                description = "줄 번호 -> 내용 (줄 번호: 1~15, 내용: 최대 40자)",
                 example = """
                 {"2":"abc","4":"sdf"}
                 """
         )
         @NotNull
-        Map<@Min(1) @Max(20) Integer, @Size(max = 40) String> content
+        Map<@Min(1) @Max(15) Integer, @Size(max = 40) String> content
 ) {}
