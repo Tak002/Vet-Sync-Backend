@@ -44,7 +44,6 @@ public class Patient extends BaseTimeEntity {
     private String breed;
 
     // Chief complaint (주호소)
-    @Column(name = "cc")
     private String cc;
 
     // 의사 진단

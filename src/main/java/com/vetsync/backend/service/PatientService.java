@@ -94,6 +94,7 @@ public class PatientService {
         return PatientInfoResponse.from(patient);
     }
 
+    @Transactional(readOnly = true)
     public List<PatientInfoResponse> listPatients(
             UUID hospitalId,
             PatientStatus status,
@@ -118,7 +119,15 @@ public class PatientService {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("owner").get("id"), ownerId));
         }
         if (nameKeyword != null && !nameKeyword.isBlank()) {
-            String like = "%" + nameKeyword.trim() + "%";
+            String raw = nameKeyword.trim().toLowerCase();
+
+            // LIKE 특수문자 이스케이프 (% _ \)
+            String escaped = raw
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
+
+            String like = "%" + escaped + "%";
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), like.toLowerCase()));
         }
 

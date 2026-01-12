@@ -55,22 +55,23 @@ public class Feeding extends BaseTimeEntity {
     private String breakfastMenu;
 
     @Column(name = "breakfast_status", nullable = false)
-    @Min(0) @Max(4) //섭취 상태 (1: 절폐, 2: 감소, 3: 정상, 4: 강제급여), 0은 선택 없음
-    private short breakfastStatus;
+    @Min(1) @Max(4) //섭취 상태 (1: 절폐, 2: 감소, 3: 정상, 4: 강제급여)
+    @Builder.Default
+    private short breakfastStatus = 3;
 
     // 점심
     @Column(name = "lunch_menu", nullable = false)
     private String lunchMenu;
 
     @Column(name = "lunch_status", nullable = false)
-    @Min(0) @Max(4)
-    private short lunchStatus; // 1~4
+    @Min(1) @Max(4)
+    private short lunchStatus = 3; // 1~4
 
     // 저녁
     @Column(name = "dinner_menu", nullable = false)
     private String dinnerMenu;
 
     @Column(name = "dinner_status", nullable = false)
-    @Min(0) @Max(4)
-    private short dinnerStatus; // 1~4
+    @Min(1) @Max(4)
+    private short dinnerStatus = 3; // 1~4
 }
