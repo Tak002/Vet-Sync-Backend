@@ -1,5 +1,5 @@
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret: ${JWT_SECRET_KEY:오늘점심으로뭐먹을까?배고픈데어캐하지?}
   access-token-minutes: 60
 spring:
   jpa:
