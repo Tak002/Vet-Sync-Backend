@@ -51,11 +51,11 @@ public record FeedingResponse(
                 null,
                 "",
                 "",
-                (short)0,
+                (short)3,
                 "",
-                (short)0,
+                (short)3,
                 "",
-                (short)0,
+                (short)3,
                 null
         );
     }
