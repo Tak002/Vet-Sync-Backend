@@ -65,6 +65,7 @@ public class Feeding extends BaseTimeEntity {
 
     @Column(name = "lunch_status", nullable = false)
     @Min(1) @Max(4)
+    @Builder.Default
     private short lunchStatus = 3; // 1~4
 
     // 저녁
@@ -73,5 +74,6 @@ public class Feeding extends BaseTimeEntity {
 
     @Column(name = "dinner_status", nullable = false)
     @Min(1) @Max(4)
+    @Builder.Default
     private short dinnerStatus = 3; // 1~4
 }

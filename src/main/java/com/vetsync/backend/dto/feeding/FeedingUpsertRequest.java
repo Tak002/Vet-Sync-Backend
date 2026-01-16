@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 public record FeedingUpsertRequest(
 
         @Schema(description = "사료 또는 기본 식단", example = "i/d low fat can loog + 죽토핑")
-        @NotBlank @Size(max = 255)
+        @Size(max = 255)
         String diet,
 
         @Schema(description = "아침 메뉴", example = "닭죽 50g")
